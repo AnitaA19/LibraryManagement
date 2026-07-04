@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace LibraryManagement.Core.Enums;
 
-namespace LibraryManagement.Core.Enums
+public enum UserRole
 {
-    internal class UserRole
-    {
-    }
+    Client,
+    Admin
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace LibraryManagement.Core.Entities;
 
-namespace LibraryManagement.Core.Entities
+public class BaseEntity
 {
-    internal class BaseEntity
-    {
-    }
+    public int Id { get; set; }
 }

@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LibraryManagement.Core.Enums;
 
-namespace LibraryManagement.Core.Entities
+namespace LibraryManagement.Core.Entities;
+
+public class BorrowRecordEntity : BaseEntity
 {
-    internal class BorrowRecordEntity
-    {
-    }
+    // Foreign key to UserEntity
+    public int UserId { get; set; }
+    // Foreign key to BookEntity
+    public int Isbn { get; set; }
+    public DateTime ReturnDate { get; set; }
+    public BorrowStatus BorrowStatus { get; set; }
 }

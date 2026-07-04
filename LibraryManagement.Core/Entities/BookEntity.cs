@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace LibraryManagement.Core.Entities;
 
-namespace LibraryManagement.Core.Entities
+public class BookEntity : BaseEntity
 {
-    internal class BookEntity
-    {
-    }
+    public string Isbn { get; set; }
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public int Quantity { get; set; }
 }

@@ -1,3 +1,16 @@
-{
-
-}
+[
+  {
+    "Isbn": "978 - 2",
+    "Title": "Title",
+    "Author": "John Doe Updated",
+    "Quantity": 5,
+    "Id": 1
+  },
+  {
+    "Isbn": "978 - 2",
+    "Title": "Title",
+    "Author": "John Doe",
+    "Quantity": 5,
+    "Id": 3
+  }
+]

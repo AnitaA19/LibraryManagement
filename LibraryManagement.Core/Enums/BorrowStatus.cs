@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace LibraryManagement.Core.Enums;
 
-namespace LibraryManagement.Core.Enums
+public enum BorrowStatus
 {
-    internal class BorrowStatus
-    {
-    }
+    Pending,
+    Approved,
+    Rejected,
+    Returned
 }
