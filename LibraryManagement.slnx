@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="LibraryManagement.App/LibraryManagement.App.csproj" />
+  <Project Path="LibraryManagement.Core/LibraryManagement.Core.csproj" />
+  <Project Path="LibraryManagement.DataAccess/LibraryManagement.DataAccess.csproj" />
+  <Project Path="LibraryManagement.Services/LibraryManagement.Services.csproj" />
 </Solution>
