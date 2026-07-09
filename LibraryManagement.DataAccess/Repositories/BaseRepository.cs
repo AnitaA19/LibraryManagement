@@ -5,9 +5,9 @@ using System.Text.Json;
 
 namespace LibraryManagement.DataAccess.Repositories;
 
-public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
+public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
 {
-    private readonly string _path;
+    protected readonly string _path;
 
     public BaseRepository(string path)
     {
@@ -20,14 +20,14 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         }
     }
 
-    private List<TEntity> ReadEntitiesFromFile()
+    protected List<TEntity> ReadEntitiesFromFile()
     {
         var content = File.ReadAllText(_path);
         return JsonSerializer.Deserialize<List<TEntity>>(content) ??
              throw new Exception("No entities found.");
     }
 
-    private void WriteEntitiesToFile(List<TEntity> entities)
+    protected void WriteEntitiesToFile(List<TEntity> entities)
     {
         var content = JsonSerializer.Serialize(entities);
         File.WriteAllText(_path, content);
@@ -36,6 +36,16 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     public void AddEntity(TEntity entity)
     {
         var entities = ReadEntitiesFromFile();
+        if (entities.Count == 0)
+        {
+            entity.Id = 1;
+
+        }
+        else
+        {
+            entity.Id = entities.Max(x => x.Id) + 1;
+        }
+
         entities.Add(entity);
 
         WriteEntitiesToFile(entities);

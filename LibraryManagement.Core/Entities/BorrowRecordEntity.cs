@@ -7,7 +7,7 @@ public class BorrowRecordEntity : BaseEntity
     // Foreign key to UserEntity
     public int UserId { get; set; }
     // Foreign key to BookEntity
-    public int Isbn { get; set; }
+    public string Isbn { get; set; }
     public DateTime ReturnDate { get; set; }
     public BorrowStatus BorrowStatus { get; set; }
 }

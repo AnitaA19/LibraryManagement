@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LibraryManagement.Core.Entities;
 
-namespace LibraryManagement.DataAccess.Interfaces
+namespace LibraryManagement.DataAccess.Interfaces;
+
+public interface IBookRepository : IBaseRepository<BookEntity>
 {
-    internal interface IBookRepository
-    {
-    }
+    BookEntity GetBookByIsbn(string isbn);
 }

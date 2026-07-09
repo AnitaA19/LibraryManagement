@@ -1,10 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+using LibraryManagement.Core.Entities;
+using LibraryManagement.DataAccess.Interfaces;
 
-namespace LibraryManagement.DataAccess.Repositories
+namespace LibraryManagement.DataAccess.Repositories;
+
+public class BorrowRecordRepository : BaseRepository<BorrowRecordEntity>, IBorrowRecordRepository
 {
-    internal class BorrowRecordRepository
+    public BorrowRecordRepository(string path) : base(path)
+    {
+        path.Concat("BorrowRecords.json");
+    }
+
+    public BorrowRecordRepository() : base(@"C:\Users\balas\source\repos\LibraryManagement\LibraryManagement.DataAccess\Database\BorrowRecords.json")
     {
     }
 }

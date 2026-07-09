@@ -1,13 +1,14 @@
 ﻿using LibraryManagement.Core.Entities;
+using LibraryManagement.DataAccess.Interfaces;
 using LibraryManagement.DataAccess.Repositories;
 
 namespace LibraryManagement.Services.Auth;
 
 public class AuthService
 {
-    private readonly BaseRepository<UserEntity> _userRepository;
+    private readonly IUserRepository _userRepository;
 
-    public AuthService(BaseRepository<UserEntity> userRepository)
+    public AuthService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
     }
@@ -33,6 +34,7 @@ public class AuthService
         };
 
         _userRepository.AddEntity(user);
+        Console.WriteLine("Registered");
     }
 
     public UserEntity Login(string usernameOrEmail, string password)

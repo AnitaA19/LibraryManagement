@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LibraryManagement.Core.Entities;
 
-namespace LibraryManagement.DataAccess.Interfaces
+namespace LibraryManagement.DataAccess.Interfaces;
+
+public interface IUserRepository : IBaseRepository<UserEntity>
 {
-    internal interface IUserRepository
-    {
-    }
 }

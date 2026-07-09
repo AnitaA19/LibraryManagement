@@ -1,8 +1,8 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Enums;
+using LibraryManagement.DataAccess.Interfaces;
 using LibraryManagement.DataAccess.Repositories;
-
-string path = @"C:\Users\balas\source\repos\LibraryManagement\LibraryManagement.DataAccess\Database\Books.json";
+using LibraryManagement.Services.Auth;
 
 BookEntity bookEntity = new BookEntity
 {
@@ -13,6 +13,5 @@ BookEntity bookEntity = new BookEntity
     Title = "Title",
 };
 
-BaseRepository<BookEntity> bookRepository = new BaseRepository<BookEntity>(path);
-bookRepository.UpdateEntity(bookEntity);
 
+AuthService authService = new AuthService(new UserRepository());

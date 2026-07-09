@@ -1,16 +1,18 @@
 [
   {
-    "Isbn": "978 - 2",
-    "Title": "Title",
-    "Author": "John Doe Updated",
-    "Quantity": 5,
+    "Username": null,
+    "PasswordHash": null,
+    "Email": null,
+    "UserRole": 0,
+    "Fines": 0,
     "Id": 1
   },
   {
-    "Isbn": "978 - 2",
-    "Title": "Title",
-    "Author": "John Doe",
-    "Quantity": 5,
+    "Username": null,
+    "PasswordHash": null,
+    "Email": null,
+    "UserRole": 0,
+    "Fines": 0,
     "Id": 3
   }
 ]
