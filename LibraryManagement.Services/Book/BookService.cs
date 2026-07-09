@@ -49,10 +49,16 @@ public class BookService
     public BorrowRecordEntity BorrowBookRequest(int userId, int id, DateTime returnDate)
     {
         var book = _bookRepository.GetEntity(id);
-        if (book == null || book.Quantity <= 0)
+        if (book.Quantity <= 0)
         {
             throw new Exception("Book not available for borrowing.");
         }
+
+        if (returnDate <= DateTime.Now)
+        {
+            throw new Exception("Return date must be in the future.");
+        }
+
         var borrowRecord = new BorrowRecordEntity
         {
             UserId = userId,
@@ -60,6 +66,9 @@ public class BookService
             ReturnDate = returnDate,
             BorrowStatus = BorrowStatus.Pending
         };
+
+        _borrowRecordRepository.AddEntity(borrowRecord);
+
         return borrowRecord;
     }
 

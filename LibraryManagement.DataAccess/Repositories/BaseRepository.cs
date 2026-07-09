@@ -1,5 +1,4 @@
-﻿
-using LibraryManagement.Core.Entities;
+﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.DataAccess.Interfaces;
 using System.Text.Json;
 
@@ -13,10 +12,15 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
     {
         _path = path;
 
-        var content = File.ReadAllText(_path);
-        if (string.IsNullOrEmpty(content))
+        var directory = Path.GetDirectoryName(_path);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
-            File.WriteAllText(path, "[]");
+            Directory.CreateDirectory(directory);
+        }
+
+        if (!File.Exists(_path) || string.IsNullOrWhiteSpace(File.ReadAllText(_path)))
+        {
+            File.WriteAllText(_path, "[]");
         }
     }
 
@@ -36,15 +40,7 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
     public void AddEntity(TEntity entity)
     {
         var entities = ReadEntitiesFromFile();
-        if (entities.Count == 0)
-        {
-            entity.Id = 1;
-
-        }
-        else
-        {
-            entity.Id = entities.Max(x => x.Id) + 1;
-        }
+        entity.Id = entities.Count == 0 ? 1 : entities.Max(x => x.Id) + 1;
 
         entities.Add(entity);
 
@@ -61,7 +57,6 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         entities.Remove(entityToDelete);
 
         WriteEntitiesToFile(entities);
-
     }
 
     public IEnumerable<TEntity> GetEntities()
@@ -75,7 +70,6 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
 
         return entities.FirstOrDefault(e => e.Id == id) ??
             throw new Exception($"{typeof(TEntity).Name} not found.");
-
     }
 
     public void UpdateEntity(TEntity entity)

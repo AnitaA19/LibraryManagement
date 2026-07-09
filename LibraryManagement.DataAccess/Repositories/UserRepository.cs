@@ -5,12 +5,14 @@ namespace LibraryManagement.DataAccess.Repositories;
 
 public class UserRepository : BaseRepository<UserEntity>, IUserRepository
 {
+    private static readonly string DefaultPath =
+        Path.Combine(AppContext.BaseDirectory, "Database", "Users.json");
+
     public UserRepository(string path) : base(path)
     {
-        path.Concat("Users.json");
     }
 
-    public UserRepository() : base(@"C:\Users\balas\source\repos\LibraryManagement\LibraryManagement.DataAccess\Database\Users.json")
+    public UserRepository() : base(DefaultPath)
     {
     }
 }
