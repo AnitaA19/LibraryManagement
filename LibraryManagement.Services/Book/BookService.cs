@@ -27,7 +27,7 @@ public class BookService
         return user.UserRole == UserRole.Admin;
     }
 
-    private double ValidateFines(int userId)
+    private decimal ValidateFines(int userId)
     {
         var user = _userRepository.GetEntity(userId);
 
@@ -38,12 +38,12 @@ public class BookService
         return user.Fines;
     }
 
-    public double ComputeFines(int userId)
+    public decimal ComputeFines(int userId)
     {
         var user = _userRepository.GetEntity(userId);
         var borrowRecords = _borrowRecordRepository.GetEntities()
             .Where(br => br.UserId == userId && br.BorrowStatus == BorrowStatus.Approved);
-        double totalFines = 0;
+        decimal totalFines = 0;
         foreach (var record in borrowRecords)
         {
             if (record.ReturnDate < DateTime.Now)
@@ -57,7 +57,7 @@ public class BookService
         return totalFines;
     }
 
-    public double PayFines(int userId, double amount)
+    public decimal PayFines(int userId, decimal amount)
     {
         var user = _userRepository.GetEntity(userId);
         if (amount <= 0)
@@ -92,7 +92,7 @@ public class BookService
 
     public BorrowRecordEntity BorrowBookRequest(int userId, int id, DateTime returnDate)
     {
-        double fine = ValidateFines(userId);
+        decimal fine = ValidateFines(userId);
 
         if (fine > 0)
         {
@@ -145,7 +145,7 @@ public class BookService
 
     public BookEntity ReturnBook(int userId, int id)
     {
-        double fine = ValidateFines(userId);
+        decimal fine = ValidateFines(userId);
         if (fine > 0)
         {
             throw new Exception($"User has unpaid fines: {fine}");

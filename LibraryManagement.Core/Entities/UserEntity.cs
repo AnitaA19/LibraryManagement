@@ -8,9 +8,9 @@ public class UserEntity : BaseEntity
     public string PasswordHash { get; set; }
     public string Email { get; set; }
     public UserRole UserRole { get; set; } = UserRole.Client;
-    private double _fines { get; set; }
+    private decimal _fines { get; set; }
 
-    public double Fines
+    public decimal Fines
     {
         get { return _fines; }
         set
