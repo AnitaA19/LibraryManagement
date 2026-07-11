@@ -107,7 +107,12 @@ public class BookService
     public BookEntity AddBook(BookEntity newBook, int userId)
     {
         isAdmin(userId);
-        if (newBook.Isbn == null || newBook.Title == null || newBook.Author == null || newBook.Quantity < 0)
+
+        if (
+            string.IsNullOrWhiteSpace(newBook.Isbn) ||
+            string.IsNullOrWhiteSpace(newBook.Title) ||
+            string.IsNullOrWhiteSpace(newBook.Author)
+            )
         {
             throw new Exception("Invalid book details.");
         }
