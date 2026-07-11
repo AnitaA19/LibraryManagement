@@ -20,13 +20,57 @@ public class BookService
         _userRepository = userRepository;
     }
 
-    private void isAdmin(int userId)
+    private bool isAdmin(int userId)
+    {
+        var user = _userRepository.GetEntity(userId)
+            ?? throw new Exception("User was not found");
+        return user.UserRole == UserRole.Admin;
+    }
+
+    private double ValidateFines(int userId)
     {
         var user = _userRepository.GetEntity(userId);
-        if (user.UserRole != UserRole.Admin)
+
+        if (user.Fines > 0)
         {
-            throw new UnauthorizedAccessException("Only admins can add books.");
+            throw new Exception($"User has unpaid fines: {user.Fines}");
         }
+        return user.Fines;
+    }
+
+    public double ComputeFines(int userId)
+    {
+        var user = _userRepository.GetEntity(userId);
+        var borrowRecords = _borrowRecordRepository.GetEntities()
+            .Where(br => br.UserId == userId && br.BorrowStatus == BorrowStatus.Approved);
+        double totalFines = 0;
+        foreach (var record in borrowRecords)
+        {
+            if (record.ReturnDate < DateTime.Now)
+            {
+                var overdueDays = (DateTime.Now - record.ReturnDate).Days;
+                totalFines += overdueDays * 5;
+            }
+        }
+        user.Fines = totalFines;
+        _userRepository.UpdateEntity(user);
+        return totalFines;
+    }
+
+    public double PayFines(int userId, double amount)
+    {
+        var user = _userRepository.GetEntity(userId);
+        if (amount <= 0)
+        {
+            throw new Exception("Payment amount must be positive.");
+        }
+        if (amount > user.Fines)
+        {
+            throw new Exception("Payment amount exceeds total fines.");
+        }
+        user.Fines -= amount;
+        _userRepository.UpdateEntity(user);
+        return user.Fines;
     }
 
     public IEnumerable<BookEntity> ViewBooks(int pageNumber = 10, int pageSize = 1)
@@ -48,6 +92,13 @@ public class BookService
 
     public BorrowRecordEntity BorrowBookRequest(int userId, int id, DateTime returnDate)
     {
+        double fine = ValidateFines(userId);
+
+        if (fine > 0)
+        {
+            throw new Exception($"User has unpaid fines: {fine}");
+        }
+
         var book = _bookRepository.GetEntity(id);
         if (book.Quantity <= 0)
         {
@@ -74,7 +125,10 @@ public class BookService
 
     public BorrowRecordEntity BorrowBookApprove(int id, int userId)
     {
-        isAdmin(userId);
+        if (!isAdmin(userId))
+        {
+            throw new Exception("Only admins can approve borrow requests.");
+        }
 
         var borrowRecord = _borrowRecordRepository.GetEntity(id);
         if (borrowRecord == null || borrowRecord.BorrowStatus != BorrowStatus.Pending)
@@ -89,8 +143,14 @@ public class BookService
         return borrowRecord;
     }
 
-    public BookEntity ReturnBook(int id)
+    public BookEntity ReturnBook(int userId, int id)
     {
+        double fine = ValidateFines(userId);
+        if (fine > 0)
+        {
+            throw new Exception($"User has unpaid fines: {fine}");
+        }
+
         var borrowRecord = _borrowRecordRepository.GetEntity(id);
         if (borrowRecord == null || borrowRecord.BorrowStatus != BorrowStatus.Approved)
         {
@@ -106,7 +166,10 @@ public class BookService
 
     public BookEntity AddBook(BookEntity newBook, int userId)
     {
-        isAdmin(userId);
+        if (!isAdmin(userId))
+        {
+            throw new Exception("Only admins can add books.");
+        }
 
         if (
             string.IsNullOrWhiteSpace(newBook.Isbn) ||
@@ -133,7 +196,10 @@ public class BookService
 
     public void DeleteBook(int id, int userId, int quantity)
     {
-        isAdmin(userId);
+        if (isAdmin(userId))
+        {
+            throw new Exception("Only admins can delete books.");
+        }
 
         var book = _bookRepository.GetEntity(id);
 
