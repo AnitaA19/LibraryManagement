@@ -13,5 +13,3 @@ BookEntity bookEntity = new BookEntity
     Title = "Title",
 };
 
-
-AuthService authService = new AuthService(new UserRepository());

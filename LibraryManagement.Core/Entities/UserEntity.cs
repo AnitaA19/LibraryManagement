@@ -10,6 +10,9 @@ public class UserEntity : BaseEntity
     public UserRole UserRole { get; set; } = UserRole.Client;
     private decimal _fines { get; set; }
 
+    public bool IsVerified { get; set; }
+    public string VerificationCode { get; set; }
+
     public decimal Fines
     {
         get { return _fines; }

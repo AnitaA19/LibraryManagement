@@ -1,16 +1,17 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.DataAccess.Interfaces;
-using LibraryManagement.DataAccess.Repositories;
 
 namespace LibraryManagement.Services.Auth;
 
 public class AuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly EmailService _emailService = new EmailService();
 
-    public AuthService(IUserRepository userRepository)
+    public AuthService(IUserRepository userRepository, EmailService emailService)
     {
         _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public void RegisterUser(string username, string email, string password)
@@ -26,14 +27,18 @@ public class AuthService
             throw new Exception("User already exists.");
         }
 
+        string verificationCode = new Random().Next(100000, 999999).ToString();
+
         var user = new UserEntity
         {
             Username = username,
             Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            VerificationCode = verificationCode,
         };
 
         _userRepository.AddEntity(user);
+        SendVerificationCode(username, verificationCode);
         Console.WriteLine("Registered");
     }
 
@@ -56,5 +61,28 @@ public class AuthService
         }
 
         return user;
+    }
+
+    public void SendVerificationCode(string username, string verificationCode)
+    {
+        _emailService.SeedEmail(username, "Verification code", verificationCode);
+    }
+
+    public  bool VerifyStudent(string username, string verificationCode)
+    {
+        var user = _userRepository
+            .GetEntities()
+            .FirstOrDefault(x => x.Username == username);
+        if (user == null)
+        {
+            throw new Exception("User not found.");
+        }
+        if (user.VerificationCode != verificationCode)
+        {
+            throw new Exception("Invalid verification code.");
+        }
+        user.IsVerified = true;
+        _userRepository.UpdateEntity(user);
+        return true;
     }
 }

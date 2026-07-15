@@ -4,11 +4,13 @@ using LibraryManagement.DataAccess.Interfaces;
 
 namespace LibraryManagement.Services.BookServices;
 
+
 public class BookService
 {
     private readonly IBookRepository _bookRepository;
     private readonly IBorrowRecordRepository _borrowRecordRepository;
     private readonly IUserRepository _userRepository;
+    private readonly int FinePerDay = 5;
 
     public BookService(
         IBookRepository bookRepository,
@@ -20,7 +22,7 @@ public class BookService
         _userRepository = userRepository;
     }
 
-    private bool isAdmin(int userId)
+    private bool IsAdmin(int userId)
     {
         var user = _userRepository.GetEntity(userId)
             ?? throw new Exception("User was not found");
@@ -49,7 +51,7 @@ public class BookService
             if (record.ReturnDate < DateTime.Now)
             {
                 var overdueDays = (DateTime.Now - record.ReturnDate).Days;
-                totalFines += overdueDays * 5;
+                totalFines += overdueDays * FinePerDay;
             }
         }
         user.Fines = totalFines;
@@ -94,11 +96,6 @@ public class BookService
     {
         decimal fine = ValidateFines(userId);
 
-        if (fine > 0)
-        {
-            throw new Exception($"User has unpaid fines: {fine}");
-        }
-
         var book = _bookRepository.GetEntity(id);
         if (book.Quantity <= 0)
         {
@@ -125,7 +122,7 @@ public class BookService
 
     public BorrowRecordEntity BorrowBookApprove(int id, int userId)
     {
-        if (!isAdmin(userId))
+        if (!IsAdmin(userId))
         {
             throw new Exception("Only admins can approve borrow requests.");
         }
@@ -146,10 +143,6 @@ public class BookService
     public BookEntity ReturnBook(int userId, int id)
     {
         decimal fine = ValidateFines(userId);
-        if (fine > 0)
-        {
-            throw new Exception($"User has unpaid fines: {fine}");
-        }
 
         var borrowRecord = _borrowRecordRepository.GetEntity(id);
         if (borrowRecord == null || borrowRecord.BorrowStatus != BorrowStatus.Approved)
@@ -166,7 +159,7 @@ public class BookService
 
     public BookEntity AddBook(BookEntity newBook, int userId)
     {
-        if (!isAdmin(userId))
+        if (!IsAdmin(userId))
         {
             throw new Exception("Only admins can add books.");
         }
@@ -196,7 +189,7 @@ public class BookService
 
     public void DeleteBook(int id, int userId, int quantity)
     {
-        if (isAdmin(userId))
+        if (IsAdmin(userId))
         {
             throw new Exception("Only admins can delete books.");
         }
