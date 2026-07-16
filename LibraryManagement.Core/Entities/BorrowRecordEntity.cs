@@ -10,4 +10,5 @@ public class BorrowRecordEntity : BaseEntity
     public string Isbn { get; set; }
     public DateTime ReturnDate { get; set; }
     public BorrowStatus BorrowStatus { get; set; }
+    public int FinedDays { get; set; }
 }

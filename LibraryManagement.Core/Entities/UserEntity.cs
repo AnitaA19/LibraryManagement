@@ -1,4 +1,5 @@
 ﻿using LibraryManagement.Core.Enums;
+using LibraryManagement.Core.Exceptions;
 
 namespace LibraryManagement.Core.Entities;
 
@@ -20,7 +21,7 @@ public class UserEntity : BaseEntity
         {
             if (value < 0)
             {
-                throw new ArgumentException("Fines cannot be negative.");
+                throw new ValidationException("Fines cannot be negative.");
             }
 
             _fines = value;

@@ -1,4 +1,6 @@
 ﻿using LibraryManagement.Core.Entities;
+using LibraryManagement.Core.Enums;
+using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
 
 namespace LibraryManagement.Services.Auth;
@@ -6,7 +8,7 @@ namespace LibraryManagement.Services.Auth;
 public class AuthService
 {
     private readonly IUserRepository _userRepository;
-    private readonly EmailService _emailService = new EmailService();
+    private readonly EmailService _emailService;
 
     public AuthService(IUserRepository userRepository, EmailService emailService)
     {
@@ -24,7 +26,7 @@ public class AuthService
 
         if (existingUser != null)
         {
-            throw new Exception("User already exists.");
+            throw new DuplicateEntityException("A user with this username or email already exists.");
         }
 
         string verificationCode = new Random().Next(100000, 999999).ToString();
@@ -35,11 +37,51 @@ public class AuthService
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             VerificationCode = verificationCode,
+            UserRole = UserRole.Client,
         };
 
         _userRepository.AddEntity(user);
-        SendVerificationCode(username, verificationCode);
+        SendVerificationCode(user.Email, verificationCode);
         Console.WriteLine("Registered");
+    }
+
+    public UserEntity SeedInitialAdmin(string username, string email, string password)
+    {
+        var adminExists = _userRepository
+            .GetEntities()
+            .Any(x => x.UserRole == UserRole.Admin);
+
+        if (adminExists)
+        {
+            throw new DuplicateEntityException("An admin user already exists.");
+        }
+
+        var admin = new UserEntity
+        {
+            Username = username,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            UserRole = UserRole.Admin,
+            IsVerified = true,
+        };
+
+        _userRepository.AddEntity(admin);
+        return admin;
+    }
+
+    public UserEntity PromoteToAdmin(int actingUserId, int targetUserId)
+    {
+        var actingUser = _userRepository.GetEntity(actingUserId);
+        if (actingUser.UserRole != UserRole.Admin)
+        {
+            throw new InsufficientPermissionException("Only admins can promote other users to admin.");
+        }
+
+        var targetUser = _userRepository.GetEntity(targetUserId);
+        targetUser.UserRole = UserRole.Admin;
+        _userRepository.UpdateEntity(targetUser);
+
+        return targetUser;
     }
 
     public UserEntity Login(string usernameOrEmail, string password)
@@ -52,35 +94,43 @@ public class AuthService
 
         if (user == null)
         {
-            throw new Exception("User not found.");
+            throw new NotFoundException("User was not found.");
         }
 
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
-            throw new Exception("Invalid password.");
+            throw new InvalidCredentialsException();
+        }
+
+        if (!user.IsVerified)
+        {
+            throw new UnverifiedAccountException();
         }
 
         return user;
     }
 
-    public void SendVerificationCode(string username, string verificationCode)
+    public void SendVerificationCode(string email, string verificationCode)
     {
-        _emailService.SeedEmail(username, "Verification code", verificationCode);
+        _emailService.SeedEmail(email, "Verification code", verificationCode);
     }
 
-    public  bool VerifyStudent(string username, string verificationCode)
+    public bool VerifyStudent(string username, string verificationCode)
     {
         var user = _userRepository
             .GetEntities()
             .FirstOrDefault(x => x.Username == username);
+
         if (user == null)
         {
-            throw new Exception("User not found.");
+            throw new NotFoundException("User was not found.");
         }
+
         if (user.VerificationCode != verificationCode)
         {
-            throw new Exception("Invalid verification code.");
+            throw new InvalidVerificationCodeException();
         }
+
         user.IsVerified = true;
         _userRepository.UpdateEntity(user);
         return true;

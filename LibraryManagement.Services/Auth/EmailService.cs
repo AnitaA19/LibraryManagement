@@ -1,25 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Mail;
-using System.Text;
 
 namespace LibraryManagement.Services.Auth
 {
     public class EmailService
     {
+        private static readonly string LogPath =
+            Path.Combine(AppContext.BaseDirectory, "Database", "Notifications.log");
+
         public void SeedEmail(string to, string subject, string body)
         {
-            SmtpClient smtpClient = new SmtpClient("library.com", 587);
-            smtpClient.UseDefaultCredentials = false;
-            smtpClient.Credentials = new NetworkCredential("mailaddress", "ukss cuag wvoz wyqx");
+            var entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] To: {to} | Subject: {subject} | Body: {body}";
 
-            MailMessage mailMessage = new MailMessage("mailaddress", to, subject, body);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[SIMULATED EMAIL] {entry}");
+            Console.ResetColor();
 
-            smtpClient.Send(mailMessage);
+            try
+            {
+                var directory = Path.GetDirectoryName(LogPath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
 
-
-
+                File.AppendAllText(LogPath, entry + Environment.NewLine);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"[WARNING] Could not write to notification log: {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"[WARNING] Could not write to notification log: {ex.Message}");
+            }
         }
     }
 }

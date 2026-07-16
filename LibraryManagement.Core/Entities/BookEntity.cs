@@ -1,4 +1,6 @@
-﻿namespace LibraryManagement.Core.Entities;
+﻿using LibraryManagement.Core.Exceptions;
+
+namespace LibraryManagement.Core.Entities;
 
 public class BookEntity : BaseEntity
 {
@@ -15,7 +17,7 @@ public class BookEntity : BaseEntity
         {
             if (value < 0)
             {
-                throw new ArgumentException("Quantity cannot be negative.");
+                throw new ValidationException("Quantity cannot be negative.");
             }
 
             _quantity = value;

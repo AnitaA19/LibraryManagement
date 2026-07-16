@@ -1,5 +1,6 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Enums;
+using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
 
 namespace LibraryManagement.Services.BookServices;
@@ -24,39 +25,63 @@ public class BookService
 
     private bool IsAdmin(int userId)
     {
-        var user = _userRepository.GetEntity(userId)
-            ?? throw new Exception("User was not found");
+        var user = _userRepository.GetEntity(userId);
         return user.UserRole == UserRole.Admin;
     }
 
     private decimal ValidateFines(int userId)
     {
+        ApplyOverdueFinesForUser(userId);
+
         var user = _userRepository.GetEntity(userId);
 
         if (user.Fines > 0)
         {
-            throw new Exception($"User has unpaid fines: {user.Fines}");
+            throw new OutstandingFineException(user.Fines);
         }
         return user.Fines;
     }
 
-    public decimal ComputeFines(int userId)
+    public void ApplyOverdueFines()
     {
-        var user = _userRepository.GetEntity(userId);
-        var borrowRecords = _borrowRecordRepository.GetEntities()
-            .Where(br => br.UserId == userId && br.BorrowStatus == BorrowStatus.Approved);
-        decimal totalFines = 0;
-        foreach (var record in borrowRecords)
+        var overdueRecords = _borrowRecordRepository.GetEntities()
+            .Where(br => br.BorrowStatus == BorrowStatus.Approved && br.ReturnDate < DateTime.Now);
+
+        foreach (var record in overdueRecords)
         {
-            if (record.ReturnDate < DateTime.Now)
-            {
-                var overdueDays = (DateTime.Now - record.ReturnDate).Days;
-                totalFines += overdueDays * FinePerDay;
-            }
+            ApplyOverdueFineToRecord(record);
         }
-        user.Fines = totalFines;
+    }
+
+    private void ApplyOverdueFinesForUser(int userId)
+    {
+        var overdueRecords = _borrowRecordRepository.GetEntities()
+            .Where(br => br.UserId == userId &&
+                         br.BorrowStatus == BorrowStatus.Approved &&
+                         br.ReturnDate < DateTime.Now);
+
+        foreach (var record in overdueRecords)
+        {
+            ApplyOverdueFineToRecord(record);
+        }
+    }
+
+    private void ApplyOverdueFineToRecord(BorrowRecordEntity record)
+    {
+        var overdueDays = (DateTime.Now - record.ReturnDate).Days;
+        var newOverdueDays = overdueDays - record.FinedDays;
+
+        if (newOverdueDays <= 0)
+        {
+            return;
+        }
+
+        var user = _userRepository.GetEntity(record.UserId);
+        user.Fines += newOverdueDays * FinePerDay;
+        record.FinedDays = overdueDays;
+
         _userRepository.UpdateEntity(user);
-        return totalFines;
+        _borrowRecordRepository.UpdateEntity(record);
     }
 
     public decimal PayFines(int userId, decimal amount)
@@ -64,47 +89,59 @@ public class BookService
         var user = _userRepository.GetEntity(userId);
         if (amount <= 0)
         {
-            throw new Exception("Payment amount must be positive.");
+            throw new ValidationException("Payment amount must be positive.");
         }
         if (amount > user.Fines)
         {
-            throw new Exception("Payment amount exceeds total fines.");
+            throw new ValidationException("Payment amount exceeds total fines.");
         }
         user.Fines -= amount;
         _userRepository.UpdateEntity(user);
         return user.Fines;
     }
 
-    public IEnumerable<BookEntity> ViewBooks(int pageNumber = 10, int pageSize = 1)
+    public IEnumerable<BookEntity> ViewBooks(int pageNumber = 1, int pageSize = 10)
     {
+        if (pageNumber < 1 || pageSize < 1)
+        {
+            throw new ValidationException("Page number and page size must be positive.");
+        }
+
         return _bookRepository
             .GetEntities()
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize);
     }
 
-    public IEnumerable<BookEntity> SearchBooks(string searchTerm, int pageNumber = 10, int pageSize = 1)
+    public IEnumerable<BookEntity> SearchBooks(string searchTerm, int pageNumber = 1, int pageSize = 10)
     {
+        if (pageNumber < 1 || pageSize < 1)
+        {
+            throw new ValidationException("Page number and page size must be positive.");
+        }
+
         return _bookRepository
             .GetEntities()
-            .Where(b => b.Title.Contains(searchTerm) || b.Author.Contains(searchTerm))
+            .Where(b =>
+                b.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                b.Author.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize);
     }
 
     public BorrowRecordEntity BorrowBookRequest(int userId, int id, DateTime returnDate)
     {
-        decimal fine = ValidateFines(userId);
+        ValidateFines(userId);
 
         var book = _bookRepository.GetEntity(id);
         if (book.Quantity <= 0)
         {
-            throw new Exception("Book not available for borrowing.");
+            throw new BookUnavailableException($"\"{book.Title}\" is not available for borrowing.");
         }
 
         if (returnDate <= DateTime.Now)
         {
-            throw new Exception("Return date must be in the future.");
+            throw new ValidationException("Return date must be in the future.");
         }
 
         var borrowRecord = new BorrowRecordEntity
@@ -124,13 +161,13 @@ public class BookService
     {
         if (!IsAdmin(userId))
         {
-            throw new Exception("Only admins can approve borrow requests.");
+            throw new InsufficientPermissionException("Only admins can approve borrow requests.");
         }
 
         var borrowRecord = _borrowRecordRepository.GetEntity(id);
-        if (borrowRecord == null || borrowRecord.BorrowStatus != BorrowStatus.Pending)
+        if (borrowRecord.BorrowStatus != BorrowStatus.Pending)
         {
-            throw new Exception("Invalid borrow request.");
+            throw new InvalidBorrowStateException("Only pending borrow requests can be approved.");
         }
         borrowRecord.BorrowStatus = BorrowStatus.Approved;
         var book = _bookRepository.GetBookByIsbn(borrowRecord.Isbn);
@@ -142,12 +179,12 @@ public class BookService
 
     public BookEntity ReturnBook(int userId, int id)
     {
-        decimal fine = ValidateFines(userId);
+        ValidateFines(userId);
 
         var borrowRecord = _borrowRecordRepository.GetEntity(id);
-        if (borrowRecord == null || borrowRecord.BorrowStatus != BorrowStatus.Approved)
+        if (borrowRecord.BorrowStatus != BorrowStatus.Approved)
         {
-            throw new Exception("Invalid return request.");
+            throw new InvalidBorrowStateException("Only approved (currently borrowed) books can be returned.");
         }
         borrowRecord.BorrowStatus = BorrowStatus.Returned;
         var book = _bookRepository.GetBookByIsbn(borrowRecord.Isbn);
@@ -161,7 +198,7 @@ public class BookService
     {
         if (!IsAdmin(userId))
         {
-            throw new Exception("Only admins can add books.");
+            throw new InsufficientPermissionException("Only admins can add books.");
         }
 
         if (
@@ -170,11 +207,10 @@ public class BookService
             string.IsNullOrWhiteSpace(newBook.Author)
             )
         {
-            throw new Exception("Invalid book details.");
+            throw new ValidationException("Invalid book details.");
         }
 
-        var book = _bookRepository.GetBookByIsbn(newBook.Isbn);
-
+        var book = _bookRepository.FindBookByIsbn(newBook.Isbn);
         if (book == null)
         {
             _bookRepository.AddEntity(newBook);
@@ -189,16 +225,16 @@ public class BookService
 
     public void DeleteBook(int id, int userId, int quantity)
     {
-        if (IsAdmin(userId))
+        if (!IsAdmin(userId))
         {
-            throw new Exception("Only admins can delete books.");
+            throw new InsufficientPermissionException("Only admins can delete books.");
         }
 
         var book = _bookRepository.GetEntity(id);
 
         if (quantity <= 0 || quantity > book.Quantity)
         {
-            throw new Exception("Invalid quantity to delete.");
+            throw new ValidationException("Invalid quantity to delete.");
         }
 
         if (quantity == book.Quantity)

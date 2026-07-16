@@ -5,4 +5,5 @@ namespace LibraryManagement.DataAccess.Interfaces;
 public interface IBookRepository : IBaseRepository<BookEntity>
 {
     BookEntity GetBookByIsbn(string isbn);
+    BookEntity? FindBookByIsbn(string isbn);
 }

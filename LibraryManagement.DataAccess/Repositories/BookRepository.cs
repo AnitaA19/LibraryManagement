@@ -1,4 +1,5 @@
 ﻿using LibraryManagement.Core.Entities;
+using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
 namespace LibraryManagement.DataAccess.Repositories;
 
@@ -19,6 +20,12 @@ public class BookRepository : BaseRepository<BookEntity>, IBookRepository
     {
         var books = ReadEntitiesFromFile();
         return books.FirstOrDefault(b => b.Isbn == isbn) ??
-            throw new Exception($"{typeof(BookEntity).Name} not found.");
+            throw new NotFoundException($"{typeof(BookEntity).Name} with ISBN '{isbn}' was not found.");
+    }
+
+    public BookEntity? FindBookByIsbn(string isbn)
+    {
+        var books = ReadEntitiesFromFile();
+        return books.FirstOrDefault(b => b.Isbn == isbn);
     }
 }

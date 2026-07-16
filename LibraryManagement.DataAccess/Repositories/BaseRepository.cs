@@ -1,4 +1,5 @@
 ﻿using LibraryManagement.Core.Entities;
+using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
 using System.Text.Json;
 
@@ -12,29 +13,71 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
     {
         _path = path;
 
-        var directory = Path.GetDirectoryName(_path);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        try
         {
-            Directory.CreateDirectory(directory);
-        }
+            var directory = Path.GetDirectoryName(_path);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
-        if (!File.Exists(_path) || string.IsNullOrWhiteSpace(File.ReadAllText(_path)))
+            if (!File.Exists(_path) || string.IsNullOrWhiteSpace(File.ReadAllText(_path)))
+            {
+                File.WriteAllText(_path, "[]");
+            }
+        }
+        catch (IOException ex)
         {
-            File.WriteAllText(_path, "[]");
+            throw new DataAccessException($"Could not initialize the data file at '{_path}'.", ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new DataAccessException($"Access denied while initializing the data file at '{_path}'.", ex);
         }
     }
 
     protected List<TEntity> ReadEntitiesFromFile()
     {
-        var content = File.ReadAllText(_path);
-        return JsonSerializer.Deserialize<List<TEntity>>(content) ??
-             throw new Exception("No entities found.");
+        string content;
+        try
+        {
+            content = File.ReadAllText(_path);
+        }
+        catch (IOException ex)
+        {
+            throw new DataAccessException($"Could not read {typeof(TEntity).Name} data from '{_path}'.", ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new DataAccessException($"Access denied while reading {typeof(TEntity).Name} data from '{_path}'.", ex);
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<TEntity>>(content) ??
+                throw new DataAccessException($"{typeof(TEntity).Name} data file '{_path}' is empty or corrupted.");
+        }
+        catch (JsonException ex)
+        {
+            throw new DataAccessException($"{typeof(TEntity).Name} data file '{_path}' contains invalid JSON.", ex);
+        }
     }
 
     protected void WriteEntitiesToFile(List<TEntity> entities)
     {
-        var content = JsonSerializer.Serialize(entities);
-        File.WriteAllText(_path, content);
+        try
+        {
+            var content = JsonSerializer.Serialize(entities);
+            File.WriteAllText(_path, content);
+        }
+        catch (IOException ex)
+        {
+            throw new DataAccessException($"Could not write {typeof(TEntity).Name} data to '{_path}'.", ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new DataAccessException($"Access denied while writing {typeof(TEntity).Name} data to '{_path}'.", ex);
+        }
     }
 
     public void AddEntity(TEntity entity)
@@ -52,7 +95,7 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         var entities = ReadEntitiesFromFile();
 
         var entityToDelete = entities.Find(x => x.Id == id) ??
-            throw new Exception($"{typeof(TEntity).Name} not found.");
+            throw new NotFoundException(typeof(TEntity).Name, id);
 
         entities.Remove(entityToDelete);
 
@@ -69,7 +112,7 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         var entities = ReadEntitiesFromFile();
 
         return entities.FirstOrDefault(e => e.Id == id) ??
-            throw new Exception($"{typeof(TEntity).Name} not found.");
+            throw new NotFoundException(typeof(TEntity).Name, id);
     }
 
     public void UpdateEntity(TEntity entity)
@@ -79,7 +122,7 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
 
         if (index == -1)
         {
-            throw new Exception($"{typeof(TEntity).Name} not found.");
+            throw new NotFoundException(typeof(TEntity).Name, entity.Id);
         }
 
         entities[index] = entity;
