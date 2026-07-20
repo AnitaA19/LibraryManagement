@@ -5,7 +5,6 @@ using LibraryManagement.DataAccess.Interfaces;
 
 namespace LibraryManagement.Services.BookServices;
 
-
 public class BookService
 {
     private readonly IBookRepository _bookRepository;
@@ -77,7 +76,7 @@ public class BookService
         }
 
         var user = _userRepository.GetEntity(record.UserId);
-        user.Fines += newOverdueDays * FinePerDay;
+        user.AddFine(newOverdueDays * FinePerDay);
         record.FinedDays = overdueDays;
 
         _userRepository.UpdateEntity(user);
@@ -87,15 +86,7 @@ public class BookService
     public decimal PayFines(int userId, decimal amount)
     {
         var user = _userRepository.GetEntity(userId);
-        if (amount <= 0)
-        {
-            throw new ValidationException("Payment amount must be positive.");
-        }
-        if (amount > user.Fines)
-        {
-            throw new ValidationException("Payment amount exceeds total fines.");
-        }
-        user.Fines -= amount;
+        user.PayFine(amount);
         _userRepository.UpdateEntity(user);
         return user.Fines;
     }
@@ -171,7 +162,7 @@ public class BookService
         }
         borrowRecord.BorrowStatus = BorrowStatus.Approved;
         var book = _bookRepository.GetBookByIsbn(borrowRecord.Isbn);
-        book.Quantity -= 1;
+        book.DecreaseQuantity(1);
         _borrowRecordRepository.UpdateEntity(borrowRecord);
         _bookRepository.UpdateEntity(book);
         return borrowRecord;
@@ -219,7 +210,7 @@ public class BookService
         }
         borrowRecord.BorrowStatus = BorrowStatus.Returned;
         var book = _bookRepository.GetBookByIsbn(borrowRecord.Isbn);
-        book.Quantity += 1;
+        book.IncreaseQuantity(1);
         _borrowRecordRepository.UpdateEntity(borrowRecord);
         _bookRepository.UpdateEntity(book);
         return book;
@@ -248,7 +239,7 @@ public class BookService
             return newBook;
         }
 
-        book.Quantity += newBook.Quantity;
+        book.IncreaseQuantity(newBook.Quantity);
         _bookRepository.UpdateEntity(book);
 
         return newBook;
@@ -274,7 +265,7 @@ public class BookService
         }
         else
         {
-            book.Quantity -= quantity;
+            book.DecreaseQuantity(quantity);
             _bookRepository.UpdateEntity(book);
         }
     }

@@ -60,13 +60,13 @@ namespace LibraryManagement.App.UI
                             return;
                     }
                 }
-                else if (_session.CurrentUser!.UserRole == UserRole.Admin)
-                {
-                    new AdminMenu(_bookService, _authService, _notificationService, _bookRepository, _session).Run();
-                }
                 else
                 {
-                    new ClientMenu(_bookService, _bookRepository, _session, _authService).Run();
+                    BaseMenu menu = _session.CurrentUser!.UserRole == UserRole.Admin
+                        ? new AdminMenu(_bookService, _authService, _notificationService, _bookRepository, _session)
+                        : new ClientMenu(_bookService, _bookRepository, _session, _authService);
+
+                    menu.Run();
                 }
             }
         }

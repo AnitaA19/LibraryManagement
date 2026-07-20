@@ -1,5 +1,4 @@
 ﻿using LibraryManagement.Core.Entities;
-using LibraryManagement.Core.Enums;
 using LibraryManagement.DataAccess.Interfaces;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
@@ -7,86 +6,78 @@ using LibraryManagement.Services.Notifications;
 
 namespace LibraryManagement.App.UI
 {
-    internal class AdminMenu
+    internal class AdminMenu : BaseMenu
     {
         private readonly BookService _bookService;
         private readonly AuthService _authService;
         private readonly NotificationService _notificationService;
         private readonly IBookRepository _bookRepository;
-        private readonly SessionContext _session;
 
         public AdminMenu(
             BookService bookService,
             AuthService authService,
             NotificationService notificationService,
             IBookRepository bookRepository,
-            SessionContext session)
+            SessionContext session) : base(session)
         {
             _bookService = bookService;
             _authService = authService;
             _notificationService = notificationService;
             _bookRepository = bookRepository;
-            _session = session;
         }
 
-        public void Run()
+        protected override int MaxOption => 10;
+
+        protected override void DisplayMenu(UserEntity currentUser)
         {
-            while (true)
+            Console.WriteLine($"=== Admin Menu ({currentUser.Username}) ===");
+            Console.WriteLine("1) View books");
+            Console.WriteLine("2) Search books");
+            Console.WriteLine("3) Add book");
+            Console.WriteLine("4) Delete book / reduce quantity");
+            Console.WriteLine("5) Approve pending borrow request");
+            Console.WriteLine("6) Reject pending borrow request");
+            Console.WriteLine("7) View all borrow records");
+            Console.WriteLine("8) View overdue records");
+            Console.WriteLine("9) Promote user to admin");
+            Console.WriteLine("10) Run due-date notification sweep");
+            Console.WriteLine("0) Logout");
+        }
+
+        protected override void HandleChoice(int choice, UserEntity currentUser)
+        {
+            switch (choice)
             {
-                var currentUser = _session.CurrentUser!;
-
-                ConsoleIO.WaitForKey();
-                ConsoleIO.Clear();
-                Console.WriteLine($"=== Admin Menu ({currentUser.Username}) ===");
-                Console.WriteLine("1) View books");
-                Console.WriteLine("2) Search books");
-                Console.WriteLine("3) Add book");
-                Console.WriteLine("4) Delete book / reduce quantity");
-                Console.WriteLine("5) Approve pending borrow request");
-                Console.WriteLine("6) Reject pending borrow request");
-                Console.WriteLine("7) View all borrow records");
-                Console.WriteLine("8) View overdue records");
-                Console.WriteLine("9) Promote user to admin");
-                Console.WriteLine("10) Run due-date notification sweep");
-                Console.WriteLine("0) Logout");
-                var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 0, 10);
-
-                switch (choice)
-                {
-                    case 1:
-                        ConsoleIO.RunSafely(ViewBooks);
-                        break;
-                    case 2:
-                        ConsoleIO.RunSafely(SearchBooks);
-                        break;
-                    case 3:
-                        ConsoleIO.RunSafely(() => AddBook(currentUser));
-                        break;
-                    case 4:
-                        ConsoleIO.RunSafely(() => DeleteBook(currentUser));
-                        break;
-                    case 5:
-                        ConsoleIO.RunSafely(() => ApproveBorrowRequest(currentUser));
-                        break;
-                    case 6:
-                        ConsoleIO.RunSafely(() => RejectBorrowRequest(currentUser));
-                        break;
-                    case 7:
-                        ConsoleIO.RunSafely(() => ViewAllBorrowRecords(currentUser));
-                        break;
-                    case 8:
-                        ConsoleIO.RunSafely(ViewOverdueRecords);
-                        break;
-                    case 9:
-                        ConsoleIO.RunSafely(() => PromoteToAdmin(currentUser));
-                        break;
-                    case 10:
-                        ConsoleIO.RunSafely(RunNotificationSweep);
-                        break;
-                    case 0:
-                        _session.Clear();
-                        return;
-                }
+                case 1:
+                    ConsoleIO.RunSafely(ViewBooks);
+                    break;
+                case 2:
+                    ConsoleIO.RunSafely(SearchBooks);
+                    break;
+                case 3:
+                    ConsoleIO.RunSafely(() => AddBook(currentUser));
+                    break;
+                case 4:
+                    ConsoleIO.RunSafely(() => DeleteBook(currentUser));
+                    break;
+                case 5:
+                    ConsoleIO.RunSafely(() => ApproveBorrowRequest(currentUser));
+                    break;
+                case 6:
+                    ConsoleIO.RunSafely(() => RejectBorrowRequest(currentUser));
+                    break;
+                case 7:
+                    ConsoleIO.RunSafely(() => ViewAllBorrowRecords(currentUser));
+                    break;
+                case 8:
+                    ConsoleIO.RunSafely(ViewOverdueRecords);
+                    break;
+                case 9:
+                    ConsoleIO.RunSafely(() => PromoteToAdmin(currentUser));
+                    break;
+                case 10:
+                    ConsoleIO.RunSafely(RunNotificationSweep);
+                    break;
             }
         }
 
@@ -111,13 +102,7 @@ namespace LibraryManagement.App.UI
             var author = ConsoleIO.ReadNonEmptyString("Author: ");
             var quantity = ConsoleIO.ReadInt("Quantity: ");
 
-            var book = new BookEntity
-            {
-                Isbn = isbn,
-                Title = title,
-                Author = author,
-                Quantity = quantity,
-            };
+            var book = new BookEntity(isbn, title, author, quantity);
 
             _bookService.AddBook(book, currentUser.Id);
             ConsoleIO.WriteSuccess($"Book \"{title}\" added.");

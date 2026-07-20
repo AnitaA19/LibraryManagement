@@ -1,74 +1,71 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
 
 namespace LibraryManagement.App.UI
 {
-    internal class ClientMenu
+    internal class ClientMenu : BaseMenu
     {
         private readonly BookService _bookService;
         private readonly IBookRepository _bookRepository;
-        private readonly SessionContext _session;
-        private readonly LibraryManagement.Services.Auth.AuthService _authService;
+        private readonly AuthService _authService;
 
-        public ClientMenu(BookService bookService, IBookRepository bookRepository, SessionContext session, LibraryManagement.Services.Auth.AuthService authService)
+        public ClientMenu(
+            BookService bookService,
+            IBookRepository bookRepository,
+            SessionContext session,
+            AuthService authService) : base(session)
         {
             _bookService = bookService;
             _bookRepository = bookRepository;
-            _session = session;
             _authService = authService;
         }
 
-        public void Run()
+        protected override int MaxOption => 8;
+
+        protected override void DisplayMenu(UserEntity currentUser)
         {
-            while (true)
+            Console.WriteLine($"=== Client Menu ({currentUser.Username}) ===");
+            Console.WriteLine("1) View books");
+            Console.WriteLine("2) Search books");
+            Console.WriteLine("3) Borrow a book (request)");
+            Console.WriteLine("4) Return a book");
+            Console.WriteLine("5) View my borrow records");
+            Console.WriteLine("6) View my fines");
+            Console.WriteLine("7) Pay fines");
+            Console.WriteLine("8) Update email");
+            Console.WriteLine("0) Logout");
+        }
+
+        protected override void HandleChoice(int choice, UserEntity currentUser)
+        {
+            switch (choice)
             {
-                var currentUser = _session.CurrentUser!;
-
-                ConsoleIO.WaitForKey();
-                ConsoleIO.Clear();
-                Console.WriteLine($"=== Client Menu ({currentUser.Username}) ===");
-                Console.WriteLine("1) View books");
-                Console.WriteLine("2) Search books");
-                Console.WriteLine("3) Borrow a book (request)");
-                Console.WriteLine("4) Return a book");
-                Console.WriteLine("5) View my borrow records");
-                Console.WriteLine("6) View my fines");
-                Console.WriteLine("7) Pay fines");
-                Console.WriteLine("8) Update email");
-                Console.WriteLine("0) Logout");
-                var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 0, 8);
-
-                switch (choice)
-                {
-                    case 1:
-                        ConsoleIO.RunSafely(ViewBooks);
-                        break;
-                    case 2:
-                        ConsoleIO.RunSafely(SearchBooks);
-                        break;
-                    case 3:
-                        ConsoleIO.RunSafely(() => BorrowBook(currentUser));
-                        break;
-                    case 4:
-                        ConsoleIO.RunSafely(() => ReturnBook(currentUser));
-                        break;
-                    case 5:
-                        ConsoleIO.RunSafely(() => ViewMyBorrowRecords(currentUser));
-                        break;
-                    case 6:
-                        ConsoleIO.RunSafely(() => ViewMyFines(currentUser));
-                        break;
-                    case 7:
-                        ConsoleIO.RunSafely(() => PayFines(currentUser));
-                        break;
-                    case 8:
-                        ConsoleIO.RunSafely(() => UpdateEmail(currentUser));
-                        break;
-                    case 0:
-                        _session.Clear();
-                        return;
-                }
+                case 1:
+                    ConsoleIO.RunSafely(ViewBooks);
+                    break;
+                case 2:
+                    ConsoleIO.RunSafely(SearchBooks);
+                    break;
+                case 3:
+                    ConsoleIO.RunSafely(() => BorrowBook(currentUser));
+                    break;
+                case 4:
+                    ConsoleIO.RunSafely(() => ReturnBook(currentUser));
+                    break;
+                case 5:
+                    ConsoleIO.RunSafely(() => ViewMyBorrowRecords(currentUser));
+                    break;
+                case 6:
+                    ConsoleIO.RunSafely(() => ViewMyFines(currentUser));
+                    break;
+                case 7:
+                    ConsoleIO.RunSafely(() => PayFines(currentUser));
+                    break;
+                case 8:
+                    ConsoleIO.RunSafely(() => UpdateEmail(currentUser));
+                    break;
             }
         }
 
