@@ -2,6 +2,7 @@
 using LibraryManagement.Core.Enums;
 using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
+using System.Net.Mail;
 
 namespace LibraryManagement.Services.Auth;
 
@@ -18,6 +19,7 @@ public class AuthService
 
     public void RegisterUser(string username, string email, string password)
     {
+        ValidateEmailFormat(email);
         var existingUser = _userRepository
             .GetEntities()
             .FirstOrDefault(x =>
@@ -47,6 +49,8 @@ public class AuthService
 
     public UserEntity SeedInitialAdmin(string username, string email, string password)
     {
+        ValidateEmailFormat(email);
+
         var adminExists = _userRepository
             .GetEntities()
             .Any(x => x.UserRole == UserRole.Admin);
@@ -134,5 +138,41 @@ public class AuthService
         user.IsVerified = true;
         _userRepository.UpdateEntity(user);
         return true;
+    }
+
+    public void UpdateEmail(int userId, string newEmail)
+    {
+        ValidateEmailFormat(newEmail);
+        var user = _userRepository.GetEntity(userId);
+
+        var duplicate = _userRepository.GetEntities().Any(u => u.Email == newEmail && u.Id != userId);
+        if (duplicate)
+        {
+            throw new DuplicateEntityException("A user with this email already exists.");
+        }
+
+        user.Email = newEmail;
+        user.IsVerified = false;
+        var verificationCode = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = verificationCode;
+
+        _userRepository.UpdateEntity(user);
+        SendVerificationCode(newEmail, verificationCode);
+    }
+
+    private void ValidateEmailFormat(string email)
+    {
+        try
+        {
+            var addr = new MailAddress(email);
+            if (addr.Address != email)
+            {
+                throw new ValidationException("Invalid email format.");
+            }
+        }
+        catch
+        {
+            throw new ValidationException("Invalid email format.");
+        }
     }
 }

@@ -9,12 +9,14 @@ namespace LibraryManagement.App.UI
         private readonly BookService _bookService;
         private readonly IBookRepository _bookRepository;
         private readonly SessionContext _session;
+        private readonly LibraryManagement.Services.Auth.AuthService _authService;
 
-        public ClientMenu(BookService bookService, IBookRepository bookRepository, SessionContext session)
+        public ClientMenu(BookService bookService, IBookRepository bookRepository, SessionContext session, LibraryManagement.Services.Auth.AuthService authService)
         {
             _bookService = bookService;
             _bookRepository = bookRepository;
             _session = session;
+            _authService = authService;
         }
 
         public void Run()
@@ -33,8 +35,9 @@ namespace LibraryManagement.App.UI
                 Console.WriteLine("5) View my borrow records");
                 Console.WriteLine("6) View my fines");
                 Console.WriteLine("7) Pay fines");
+                Console.WriteLine("8) Update email");
                 Console.WriteLine("0) Logout");
-                var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 0, 7);
+                var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 0, 8);
 
                 switch (choice)
                 {
@@ -58,6 +61,9 @@ namespace LibraryManagement.App.UI
                         break;
                     case 7:
                         ConsoleIO.RunSafely(() => PayFines(currentUser));
+                        break;
+                    case 8:
+                        ConsoleIO.RunSafely(() => UpdateEmail(currentUser));
                         break;
                     case 0:
                         _session.Clear();
@@ -115,6 +121,13 @@ namespace LibraryManagement.App.UI
             var amount = ConsoleIO.ReadDecimal("Amount to pay: ");
             var remaining = _bookService.PayFines(currentUser.Id, amount);
             ConsoleIO.WriteSuccess($"Payment accepted. Remaining fines: {remaining:0.00}");
+        }
+
+        private void UpdateEmail(UserEntity currentUser)
+        {
+            var newEmail = ConsoleIO.ReadNonEmptyString("New email: ");
+            _authService.UpdateEmail(currentUser.Id, newEmail);
+            ConsoleIO.WriteSuccess("Email updated. A verification code has been sent to your new email.");
         }
 
         private void PrintBooks(IEnumerable<BookEntity> books)

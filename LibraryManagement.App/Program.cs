@@ -30,10 +30,38 @@ static void EnsureAdminSeeded(AuthService authService, LibraryManagement.DataAcc
     }
 
     Console.WriteLine("No admin account exists yet. Let's create one.");
-    var username = ConsoleIO.ReadNonEmptyString("Admin username: ");
-    var email = ConsoleIO.ReadNonEmptyString("Admin email: ");
-    var password = ConsoleIO.ReadNonEmptyString("Admin password: ");
 
-    authService.SeedInitialAdmin(username, email, password);
-    ConsoleIO.WriteSuccess("Admin account created. You can log in now.");
+    while (true)
+    {
+        var username = ConsoleIO.ReadNonEmptyString("Admin username: ");
+        var email = ConsoleIO.ReadNonEmptyString("Admin email: ");
+        var password = ConsoleIO.ReadNonEmptyString("Admin password: ");
+
+        try
+        {
+            authService.SeedInitialAdmin(username, email, password);
+            ConsoleIO.WriteSuccess("Admin account created. You can log in now.");
+            break;
+        }
+        catch (LibraryManagement.Core.Exceptions.ValidationException ex)
+        {
+            ConsoleIO.WriteError(ex.Message + " Please try again.");
+            var retry = ConsoleIO.ReadNonEmptyString("Try again? (y/n): ");
+            if (!retry.Equals("y", StringComparison.OrdinalIgnoreCase))
+            {
+                ConsoleIO.WriteError("No admin was created. Exiting.");
+                Environment.Exit(0);
+            }
+        }
+        catch (LibraryManagement.Core.Exceptions.LibraryException ex)
+        {
+            ConsoleIO.WriteError(ex.Message);
+            var retry = ConsoleIO.ReadNonEmptyString("Try again? (y/n): ");
+            if (!retry.Equals("y", StringComparison.OrdinalIgnoreCase))
+            {
+                ConsoleIO.WriteError("No admin was created. Exiting.");
+                Environment.Exit(0);
+            }
+        }
+    }
 }

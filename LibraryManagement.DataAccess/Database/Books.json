@@ -1,18 +1,1 @@
-[
-  {
-    "Username": null,
-    "PasswordHash": null,
-    "Email": null,
-    "UserRole": 0,
-    "Fines": 0,
-    "Id": 1
-  },
-  {
-    "Username": null,
-    "PasswordHash": null,
-    "Email": null,
-    "UserRole": 0,
-    "Fines": 0,
-    "Id": 3
-  }
-]
+[{"Isbn":"123-5678","Title":"Alice in Wonderland","Author":"Lewis Caroll","Quantity":125,"Id":1}]

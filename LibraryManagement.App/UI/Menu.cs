@@ -66,7 +66,7 @@ namespace LibraryManagement.App.UI
                 }
                 else
                 {
-                    new ClientMenu(_bookService, _bookRepository, _session).Run();
+                    new ClientMenu(_bookService, _bookRepository, _session, _authService).Run();
                 }
             }
         }

@@ -59,7 +59,34 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         }
         catch (JsonException ex)
         {
-            throw new DataAccessException($"{typeof(TEntity).Name} data file '{_path}' contains invalid JSON.", ex);
+            try
+            {
+                var trimmed = content?.Trim();
+                if (!string.IsNullOrEmpty(trimmed) && trimmed.StartsWith('{'))
+                {
+                    var single = JsonSerializer.Deserialize<TEntity>(content);
+                    if (single != null)
+                    {
+                        return new List<TEntity> { single };
+                    }
+                }
+
+                var backupPath = _path + ".corrupt." + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ".bak";
+                try
+                {
+                    File.Copy(_path, backupPath, overwrite: true);
+                }
+                catch
+                {
+                }
+
+                File.WriteAllText(_path, "[]");
+                return new List<TEntity>();
+            }
+            catch (Exception inner)
+            {
+                throw new DataAccessException($"{typeof(TEntity).Name} data file '{_path}' contains invalid JSON.", inner);
+            }
         }
     }
 
