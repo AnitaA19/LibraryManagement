@@ -1,87 +1,72 @@
-﻿using LibraryManagement.Core.Exceptions;
+﻿using LibraryManagement.Core.Enums;
+using LibraryManagement.DataAccess.Interfaces;
 using LibraryManagement.Services.Auth;
+using LibraryManagement.Services.BookServices;
+using LibraryManagement.Services.Notifications;
 
 namespace LibraryManagement.App.UI
 {
-    internal class RegistrationPage
+    internal class Menu
     {
         private readonly AuthService _authService;
+        private readonly BookService _bookService;
+        private readonly NotificationService _notificationService;
+        private readonly IBookRepository _bookRepository;
+        private readonly SessionContext _session;
 
-        public RegistrationPage(AuthService authService)
+        public Menu(
+            AuthService authService,
+            BookService bookService,
+            NotificationService notificationService,
+            IBookRepository bookRepository,
+            SessionContext session)
         {
             _authService = authService;
+            _bookService = bookService;
+            _notificationService = notificationService;
+            _bookRepository = bookRepository;
+            _session = session;
         }
 
         public void Run()
         {
-            Console.WriteLine();
-            Console.WriteLine("--- Register ---");
+            var isFirstScreen = true;
 
-            var username = TryRegister();
-            if (username != null)
-            {
-                Verify(username);
-            }
-        }
-
-        private string? TryRegister()
-        {
             while (true)
             {
-                var username = ConsoleIO.ReadNonEmptyString("Username: ");
-                var email = ConsoleIO.ReadNonEmptyString("Email: ");
-                var password = ConsoleIO.ReadNonEmptyString("Password: ");
-
-                try
+                if (!_session.IsLoggedIn)
                 {
-                    _authService.RegisterUser(username, email, password);
-                    Console.WriteLine("A verification code has been sent (see simulated email above).");
-                    return username;
-                }
-                catch (DuplicateEntityException ex)
-                {
-                    ConsoleIO.WriteError(ex.Message);
-                    var goToVerify = ConsoleIO.ReadNonEmptyString(
-                        "If this account exists but isn't verified yet, verify it now? (y/n): ");
-                    if (goToVerify.Equals("y", StringComparison.OrdinalIgnoreCase))
+                    if (!isFirstScreen)
                     {
-                        return username;
+                        ConsoleIO.WaitForKey();
                     }
-                    return null;
-                }
-                catch (LibraryException ex)
-                {
-                    ConsoleIO.WriteError(ex.Message);
-                    var retry = ConsoleIO.ReadNonEmptyString("Try again? (y/n): ");
-                    if (!retry.Equals("y", StringComparison.OrdinalIgnoreCase))
+                    ConsoleIO.Clear();
+                    isFirstScreen = false;
+                    Console.WriteLine("=== Library Management ===");
+                    Console.WriteLine("1) Login");
+                    Console.WriteLine("2) Register");
+                    Console.WriteLine("3) Exit");
+                    var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 1, 3);
+
+                    switch (choice)
                     {
-                        return null;
+                        case 1:
+                            new LoginPage(_authService, _session).Run();
+                            break;
+                        case 2:
+                            new RegistrationPage(_authService).Run();
+                            break;
+                        case 3:
+                            return;
                     }
                 }
-            }
-        }
-
-        private void Verify(string username)
-        {
-            while (true)
-            {
-                var code = ConsoleIO.ReadNonEmptyString("Enter verification code: ");
-
-                try
+                else if (_session.CurrentUser!.UserRole == UserRole.Admin)
                 {
-                    _authService.VerifyStudent(username, code);
-                    ConsoleIO.WriteSuccess("Account verified. You can now log in.");
-                    return;
+                    new AdminMenu(_bookService, _authService, _notificationService, _bookRepository, _session).Run();
                 }
-                catch (LibraryException ex)
+                else
                 {
-                    ConsoleIO.WriteError(ex.Message);
-                    var retry = ConsoleIO.ReadNonEmptyString("Try again? (y/n): ");
-                    if (!retry.Equals("y", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine("You can verify later by registering again.");
-                        return;
-                    }
+                    new ClientMenu(_bookService, _bookRepository, _session).Run();
                 }
             }
         }
