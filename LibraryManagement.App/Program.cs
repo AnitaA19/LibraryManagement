@@ -3,13 +3,24 @@ using LibraryManagement.Core.Enums;
 using LibraryManagement.DataAccess.Repositories;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
+using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.Notifications;
+using Microsoft.Extensions.Configuration;
+
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddUserSecrets<Program>()
+    .Build();
+
+var emailSettings = new EmailSettings();
+configuration.GetSection("Email").Bind(emailSettings);
 
 var bookRepository = new BookRepository();
 var userRepository = new UserRepository();
 var borrowRecordRepository = new BorrowRecordRepository();
 
-var emailService = new EmailService();
+var emailService = new EmailService(emailSettings);
 var authService = new AuthService(userRepository, emailService);
 var bookService = new BookService(bookRepository, borrowRecordRepository, userRepository);
 var notificationService = new NotificationService(borrowRecordRepository, userRepository, bookRepository, emailService, bookService);

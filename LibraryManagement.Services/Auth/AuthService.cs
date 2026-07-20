@@ -23,7 +23,6 @@ public class AuthService
         var existingUser = _userRepository
             .GetEntities()
             .FirstOrDefault(x =>
-                x.Username == username ||
                 x.Email == email);
 
         if (existingUser != null)
@@ -44,7 +43,6 @@ public class AuthService
 
         _userRepository.AddEntity(user);
         SendVerificationCode(user.Email, verificationCode);
-        Console.WriteLine("Registered");
     }
 
     public UserEntity SeedInitialAdmin(string username, string email, string password)
@@ -92,9 +90,7 @@ public class AuthService
     {
         var user = _userRepository
             .GetEntities()
-            .FirstOrDefault(x =>
-                x.Username == usernameOrEmail ||
-                x.Email == usernameOrEmail);
+            .FirstOrDefault(x => x.Email == usernameOrEmail);
 
         if (user == null)
         {
@@ -123,7 +119,7 @@ public class AuthService
     {
         var user = _userRepository
             .GetEntities()
-            .FirstOrDefault(x => x.Username == username);
+            .FirstOrDefault(x => x.Email == username);
 
         if (user == null)
         {
