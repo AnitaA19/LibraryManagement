@@ -1,0 +1,10 @@
+{
+  "Email": {
+    "Host": "smtp.gmail.com",
+    "Port": 587,
+    "FromEmail": "balasanyananita@gmail.com",
+    "FromName": "Library Management",
+    "Username": "balasanyananita@gmail.com",
+    "EnableSsl": true
+  }
+}
