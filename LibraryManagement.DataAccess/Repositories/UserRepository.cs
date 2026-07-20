@@ -5,8 +5,7 @@ namespace LibraryManagement.DataAccess.Repositories;
 
 public class UserRepository : BaseRepository<UserEntity>, IUserRepository
 {
-    private static readonly string DefaultPath =
-        Path.Combine(AppContext.BaseDirectory, "Database", "Users.json");
+    private static readonly string DefaultPath = DatabasePathResolver.Resolve("Users.json");
 
     public UserRepository(string path) : base(path)
     {

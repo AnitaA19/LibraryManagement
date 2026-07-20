@@ -5,8 +5,7 @@ namespace LibraryManagement.DataAccess.Repositories;
 
 public class BorrowRecordRepository : BaseRepository<BorrowRecordEntity>, IBorrowRecordRepository
 {
-    private static readonly string DefaultPath =
-        Path.Combine(AppContext.BaseDirectory, "Database", "BorrowRecords.json");
+    private static readonly string DefaultPath = DatabasePathResolver.Resolve("BorrowRecords.json");
 
     public BorrowRecordRepository(string path) : base(path)
     {

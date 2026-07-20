@@ -177,6 +177,37 @@ public class BookService
         return borrowRecord;
     }
 
+    public BorrowRecordEntity BorrowBookReject(int id, int userId)
+    {
+        if (!IsAdmin(userId))
+        {
+            throw new InsufficientPermissionException("Only admins can reject borrow requests.");
+        }
+
+        var borrowRecord = _borrowRecordRepository.GetEntity(id);
+        if (borrowRecord.BorrowStatus != BorrowStatus.Pending)
+        {
+            throw new InvalidBorrowStateException("Only pending borrow requests can be rejected.");
+        }
+        borrowRecord.BorrowStatus = BorrowStatus.Rejected;
+        _borrowRecordRepository.UpdateEntity(borrowRecord);
+        return borrowRecord;
+    }
+
+    public IEnumerable<BorrowRecordEntity> GetBorrowRecordsForUser(int userId)
+    {
+        return _borrowRecordRepository.GetEntities().Where(r => r.UserId == userId);
+    }
+
+    public IEnumerable<BorrowRecordEntity> GetAllBorrowRecords(int actingUserId)
+    {
+        if (!IsAdmin(actingUserId))
+        {
+            throw new InsufficientPermissionException("Only admins can view all borrow records.");
+        }
+        return _borrowRecordRepository.GetEntities();
+    }
+
     public BookEntity ReturnBook(int userId, int id)
     {
         ValidateFines(userId);
