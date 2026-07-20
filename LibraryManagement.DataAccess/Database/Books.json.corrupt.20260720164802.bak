@@ -9,14 +9,14 @@
   {
     "Isbn": "123-0002",
     "Title": "Jane Eyre",
-    "Author": "Charlotte Bront\u00EB",
+    "Author": "Charlotte Brontë",
     "Quantity": 134,
     "Id": 2
   },
   {
     "Isbn": "123-0003",
     "Title": "Wuthering Heights",
-    "Author": "Emily Bront\u00EB",
+    "Author": "Emily Brontë",
     "Quantity": 92,
     "Id": 3
   },
@@ -29,7 +29,7 @@
   },
   {
     "Isbn": "123-0005",
-    "Title": "Alice\u0027s Adventures in Wonderland",
+    "Title": "Alice's Adventures in Wonderland",
     "Author": "Lewis Carroll",
     "Quantity": 168,
     "Id": 5
@@ -154,6 +154,7 @@
     "Id": 22
   },
   {
+  {
     "Isbn": "123-0023",
     "Title": "The Odyssey",
     "Author": "Homer",
@@ -162,7 +163,7 @@
   },
   {
     "Isbn": "123-0024",
-    "Title": "Les Mis\u00E9rables",
+    "Title": "Les Misérables",
     "Author": "Victor Hugo",
     "Quantity": 106,
     "Id": 24
@@ -198,7 +199,7 @@
   {
     "Isbn": "123-0029",
     "Title": "The Prince",
-    "Author": "Niccol\u00F2 Machiavelli",
+    "Author": "Niccolò Machiavelli",
     "Quantity": 68,
     "Id": 29
   },
@@ -255,12 +256,12 @@
     "Isbn": "123-0037",
     "Title": "Dracula",
     "Author": "Bram Stoker",
-    "Quantity": 247,
+    "Quantity": 248,
     "Id": 37
   },
   {
     "Isbn": "123-0038",
-    "Title": "Gulliver\u0027s Travels",
+    "Title": "Gulliver's Travels",
     "Author": "Jonathan Swift",
     "Quantity": 58,
     "Id": 38
@@ -344,16 +345,9 @@
   },
   {
     "Isbn": "123-0050",
-    "Title": "The Handmaid\u0027s Tale",
+    "Title": "The Handmaid's Tale",
     "Author": "Margaret Atwood",
     "Quantity": 165,
     "Id": 50
-  },
-  {
-    "Isbn": "4553-5345",
-    "Title": "Test",
-    "Author": "Test",
-    "Quantity": 50,
-    "Id": 51
   }
 ]

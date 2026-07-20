@@ -16,14 +16,13 @@ namespace LibraryManagement.App.UI
             while (true)
             {
                 var currentUser = _session.CurrentUser!;
-
                 ConsoleIO.WaitForKey();
-                ConsoleIO.Clear();
                 DisplayMenu(currentUser);
                 var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 0, MaxOption);
 
                 if (choice == 0)
                 {
+                    ConsoleIO.Clear();
                     _session.Clear();
                     return;
                 }
