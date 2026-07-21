@@ -18,10 +18,10 @@ namespace LibraryManagement.App.UI
             Console.WriteLine();
             Console.WriteLine("--- Register ---");
 
-            var username = TryRegister();
-            if (username != null)
+            var email = TryRegister();
+            if (email != null)
             {
-                Verify(username);
+                Verify(email);
             }
         }
 
@@ -47,7 +47,7 @@ namespace LibraryManagement.App.UI
                 {
                     _authService.RegisterUser(username, email, password);
                     Console.WriteLine("A verification code has been sent (see simulated email above).");
-                    return username;
+                    return email;
                 }
                 catch (DuplicateEntityException ex)
                 {
@@ -56,7 +56,7 @@ namespace LibraryManagement.App.UI
                         "If this account exists but isn't verified yet, verify it now? (y/n): ");
                     if (goToVerify.Equals("y", StringComparison.OrdinalIgnoreCase))
                     {
-                        return username;
+                        return email;
                     }
                     return null;
                 }
@@ -72,7 +72,7 @@ namespace LibraryManagement.App.UI
             }
         }
 
-        private void Verify(string username)
+        private void Verify(string email)
         {
             while (true)
             {
@@ -80,7 +80,7 @@ namespace LibraryManagement.App.UI
 
                 try
                 {
-                    _authService.VerifyStudent(username, code);
+                    _authService.VerifyStudent(email, code);
                     ConsoleIO.WriteSuccess("Account verified. You can now log in.");
                     return;
                 }

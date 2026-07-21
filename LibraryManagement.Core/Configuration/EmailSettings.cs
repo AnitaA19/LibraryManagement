@@ -1,4 +1,4 @@
-namespace LibraryManagement.Core.Entities;
+﻿namespace LibraryManagement.Core.Configuration;
 
 public class EmailSettings
 {

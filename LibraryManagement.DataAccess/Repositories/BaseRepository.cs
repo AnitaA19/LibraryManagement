@@ -112,6 +112,16 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         var entities = ReadEntitiesFromFile();
         entity.Id = entities.Count == 0 ? 1 : entities.Max(x => x.Id) + 1;
 
+        var createdAtProp = typeof(TEntity).GetProperty("CreatedAt");
+        if (createdAtProp != null && createdAtProp.PropertyType == typeof(DateTime))
+        {
+            var value = (DateTime?)createdAtProp.GetValue(entity);
+            if (value == null || value == default)
+            {
+                createdAtProp.SetValue(entity, DateTime.UtcNow);
+            }
+        }
+
         entities.Add(entity);
 
         WriteEntitiesToFile(entities);

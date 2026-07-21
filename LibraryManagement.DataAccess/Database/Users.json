@@ -1,1 +1,13 @@
-[{"Username":"Anita","PasswordHash":"$2a$11$q0Dpn6AjUsm/ceLTg9XuQuYXiz8iYDyPVg0222zaCRr2UD5NJluRa","Email":"anita@library.com","UserRole":1,"IsVerified":true,"VerificationCode":null,"Fines":0,"Id":1},{"Username":"Luka","PasswordHash":"$2a$11$yXLsQU8YSg/.iFCQvUZiK.G2gmeHiRI5PVBhnP6TM5J4LLi9Z3/Jy","Email":"lukajokhadze97@gmail.com","UserRole":0,"IsVerified":false,"VerificationCode":"996743","Fines":0,"Id":2}]
+[
+  {
+    "Username": "Anita",
+    "PasswordHash": "$2a$11$q0Dpn6AjUsm/ceLTg9XuQuYXiz8iYDyPVg0222zaCRr2UD5NJluRa",
+    "Email": "anita@library.com",
+    "UserRole": 1,
+    "IsVerified": true,
+    "VerificationCode": null,
+    "CreatedAt": "0001-01-01T00:00:00",
+    "Fines": 0,
+    "Id": 1
+  }
+]

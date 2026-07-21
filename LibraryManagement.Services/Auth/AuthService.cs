@@ -3,6 +3,7 @@ using LibraryManagement.Core.Enums;
 using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
 using System.Net.Mail;
+using LibraryManagement.Services.Logging;
 
 namespace LibraryManagement.Services.Auth;
 
@@ -10,6 +11,8 @@ public class AuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly EmailService _emailService;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, UserEntity> _pending =
+        new(System.StringComparer.OrdinalIgnoreCase);
 
     public AuthService(IUserRepository userRepository, EmailService emailService)
     {
@@ -27,10 +30,15 @@ public class AuthService
 
         if (existingUser != null)
         {
-            throw new DuplicateEntityException("A user with this username or email already exists.");
+            throw new DuplicateEntityException("A user with this email already exists.");
         }
 
         string verificationCode = new Random().Next(100000, 999999).ToString();
+
+        if (string.IsNullOrWhiteSpace(verificationCode))
+        {
+            throw new ValidationException("Failed to generate verification code. Registration aborted.");
+        }
 
         var user = new UserEntity
         {
@@ -41,8 +49,17 @@ public class AuthService
             UserRole = UserRole.Client,
         };
 
-        _userRepository.AddEntity(user);
-        SendVerificationCode(user.Email, verificationCode);
+        user.CreatedAt = DateTime.UtcNow;
+
+        var emailSent = _emailService.SeedEmail(email, "Verification code", verificationCode);
+        if (!emailSent)
+        {
+            throw new ValidationException("Failed to send verification email. Registration aborted.");
+        }
+
+        // Store pending registration in-memory until verification completes.
+        _pending[email] = user;
+        // SendVerificationCode(user.Email, verificationCode);
     }
 
     public UserEntity SeedInitialAdmin(string username, string email, string password)
@@ -68,6 +85,7 @@ public class AuthService
         };
 
         _userRepository.AddEntity(admin);
+        EventLogger.Log($"Admin seeded: Email={email}, Username={username}");
         return admin;
     }
 
@@ -81,13 +99,17 @@ public class AuthService
 
         var targetUser = _userRepository.GetEntity(targetUserId);
         targetUser.UserRole = UserRole.Admin;
+        // Clear fines when promoting to admin
+        targetUser.ClearFines();
         _userRepository.UpdateEntity(targetUser);
+        EventLogger.Log($"User promoted to admin: ActingUserId={actingUserId}, TargetUserId={targetUserId}");
 
         return targetUser;
     }
 
     public UserEntity Login(string usernameOrEmail, string password)
     {
+        // Login is only allowed via email
         var user = _userRepository
             .GetEntities()
             .FirstOrDefault(x => x.Email == usernameOrEmail);
@@ -107,32 +129,54 @@ public class AuthService
             throw new UnverifiedAccountException();
         }
 
+        EventLogger.Log($"User logged in: UserId={user.Id}, Email={user.Email}");
         return user;
     }
 
     public void SendVerificationCode(string email, string verificationCode)
     {
         _emailService.SeedEmail(email, "Verification code", verificationCode);
+        EventLogger.Log($"Verification code sent: Email={email}");
     }
 
     public bool VerifyStudent(string username, string verificationCode)
     {
-        var user = _userRepository
-            .GetEntities()
-            .FirstOrDefault(x => x.Email == username);
 
-        if (user == null)
+        var email = username;
+
+
+        var user = _userRepository.GetEntities().FirstOrDefault(x => x.Email == email);
+
+        if (user != null)
+        {
+            // existing persisted user
+            if (user.VerificationCode != verificationCode)
+            {
+                throw new InvalidVerificationCodeException();
+            }
+
+            user.IsVerified = true;
+            _userRepository.UpdateEntity(user);
+            EventLogger.Log($"User verified (existing): UserId={user.Id}, Email={user.Email}");
+            return true;
+        }
+
+
+        if (!_pending.TryGetValue(email, out var pendingUser))
         {
             throw new NotFoundException("User was not found.");
         }
 
-        if (user.VerificationCode != verificationCode)
+        if (pendingUser.VerificationCode != verificationCode)
         {
             throw new InvalidVerificationCodeException();
         }
 
-        user.IsVerified = true;
-        _userRepository.UpdateEntity(user);
+
+        pendingUser.IsVerified = true;
+        _userRepository.AddEntity(pendingUser);
+        _pending.TryRemove(email, out _);
+        EventLogger.Log($"User verified (new): Email={email}, AssignedId={pendingUser.Id}");
         return true;
     }
 
@@ -154,6 +198,7 @@ public class AuthService
 
         _userRepository.UpdateEntity(user);
         SendVerificationCode(newEmail, verificationCode);
+        EventLogger.Log($"User email updated: UserId={userId}, NewEmail={newEmail}");
     }
 
     private void ValidateEmailFormat(string email)

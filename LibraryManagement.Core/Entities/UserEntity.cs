@@ -16,6 +16,8 @@ public class UserEntity : BaseEntity
     public bool IsVerified { get; set; }
     public string VerificationCode { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
     [JsonInclude]
     public decimal Fines
     {
@@ -33,6 +35,10 @@ public class UserEntity : BaseEntity
 
     public void AddFine(decimal amount)
     {
+        if (UserRole == UserRole.Admin)
+        {
+            throw new ValidationException("Admins cannot have fines.");
+        }
         if (amount <= 0)
         {
             throw new ValidationException("Fine amount must be positive.");
@@ -54,5 +60,10 @@ public class UserEntity : BaseEntity
         }
 
         Fines -= amount;
+    }
+
+    public void ClearFines()
+    {
+        Fines = 0m;
     }
 }

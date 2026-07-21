@@ -3,7 +3,7 @@ using LibraryManagement.Core.Enums;
 using LibraryManagement.DataAccess.Repositories;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
-using LibraryManagement.Services.Auth;
+using LibraryManagement.Core.Configuration;
 using LibraryManagement.Services.Notifications;
 using Microsoft.Extensions.Configuration;
 
@@ -26,6 +26,40 @@ var bookService = new BookService(bookRepository, borrowRecordRepository, userRe
 var notificationService = new NotificationService(borrowRecordRepository, userRepository, bookRepository, emailService, bookService);
 
 EnsureAdminSeeded(authService, userRepository);
+
+try
+{
+    var removed = userRepository.RemoveStaleUnverifiedUsers(TimeSpan.FromDays(1));
+    if (removed > 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"Removed {removed} stale unverified user(s).");
+        Console.ResetColor();
+    }
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine($"Warning: failed to clean stale users: {ex.Message}");
+    Console.ResetColor();
+}
+
+try
+{
+    var removedAll = userRepository.RemoveUnverifiedUsers(excludeAdmins: true);
+    if (removedAll > 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"Removed {removedAll} unverified user(s) from persisted store.");
+        Console.ResetColor();
+    }
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine($"Warning: failed to remove persisted unverified users: {ex.Message}");
+    Console.ResetColor();
+}
 
 var session = new SessionContext();
 new Menu(authService, bookService, notificationService, bookRepository, session).Run();

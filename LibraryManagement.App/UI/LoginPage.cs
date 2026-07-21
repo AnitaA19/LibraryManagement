@@ -20,12 +20,12 @@ namespace LibraryManagement.App.UI
             {
                 Console.WriteLine();
                 Console.WriteLine("--- Login ---");
-                var usernameOrEmail = ConsoleIO.ReadNonEmptyString("Username or email: ");
+                var email = ConsoleIO.ReadNonEmptyString("Email: ");
                 var password = ConsoleIO.ReadNonEmptyString("Password: ");
 
                 try
                 {
-                    var user = _authService.Login(usernameOrEmail, password);
+                    var user = _authService.Login(email, password);
                     _session.CurrentUser = user;
                     ConsoleIO.WriteSuccess($"Welcome, {user.Username}!");
                     return;
