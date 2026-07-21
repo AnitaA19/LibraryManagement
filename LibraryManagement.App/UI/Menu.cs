@@ -45,8 +45,9 @@ namespace LibraryManagement.App.UI
                     Console.WriteLine("=== Library Management ===");
                     Console.WriteLine("1) Login");
                     Console.WriteLine("2) Register");
+                    Console.WriteLine("3) Verification");
                     Console.WriteLine("3) Exit");
-                    var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 1, 3);
+                    var choice = ConsoleIO.ReadMenuChoice("Choose an option: ", 1, 4);
 
                     switch (choice)
                     {
@@ -57,6 +58,9 @@ namespace LibraryManagement.App.UI
                             new RegistrationPage(_authService).Run();
                             break;
                         case 3:
+                            new VerificationPage(_authService).Run();
+                            break;
+                        case 4:
                             return;
                     }
                 }

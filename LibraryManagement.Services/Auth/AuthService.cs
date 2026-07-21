@@ -51,6 +51,7 @@ public class AuthService
         };
 
         user.CreatedAt = DateTime.UtcNow;
+        user.VerificationSentAt = DateTime.UtcNow;
 
         var emailSent = _emailService.SendEmail(email, "Verification code", verificationCode);
         if (!emailSent)
@@ -156,6 +157,11 @@ public class AuthService
                 throw new InvalidVerificationCodeException();
             }
 
+            if (user.VerificationSentAt.HasValue && DateTime.UtcNow - user.VerificationSentAt.Value > TimeSpan.FromMinutes(10))
+            {
+                throw new InvalidVerificationCodeException("Verification code expired.");
+            }
+
             user.IsVerified = true;
             _userRepository.UpdateEntity(user);
             EventLogger.Log($"User verified (existing): UserId={user.Id}, Email={user.Email}");
@@ -171,6 +177,11 @@ public class AuthService
         if (pendingUser.VerificationCode != verificationCode)
         {
             throw new InvalidVerificationCodeException();
+        }
+
+        if (pendingUser.VerificationSentAt.HasValue && DateTime.UtcNow - pendingUser.VerificationSentAt.Value > TimeSpan.FromMinutes(10))
+        {
+            throw new InvalidVerificationCodeException("Verification code expired.");
         }
 
 

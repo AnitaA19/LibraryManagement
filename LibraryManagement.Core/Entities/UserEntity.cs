@@ -17,6 +17,7 @@ public class UserEntity : BaseEntity
     public string VerificationCode { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public DateTime? VerificationSentAt { get; set; }
 
     [JsonInclude]
     public decimal Fines
