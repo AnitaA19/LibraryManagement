@@ -2,6 +2,7 @@
 using LibraryManagement.Core.Enums;
 using LibraryManagement.DataAccess.Interfaces;
 using LibraryManagement.Services.Auth;
+using LibraryManagement.Services.Interfaces;
 using LibraryManagement.Services.BookServices;
 
 namespace LibraryManagement.Services.Notifications;
@@ -11,14 +12,14 @@ public class NotificationService
     private readonly IBorrowRecordRepository _borrowRecordRepository;
     private readonly IUserRepository _userRepository;
     private readonly IBookRepository _bookRepository;
-    private readonly EmailService _emailService;
+    private readonly LibraryManagement.Services.Interfaces.IEmailService _emailService;
     private readonly BookService _bookService;
 
     public NotificationService(
         IBorrowRecordRepository borrowRecordRepository,
         IUserRepository userRepository,
         IBookRepository bookRepository,
-        EmailService emailService,
+        IEmailService emailService,
         BookService bookService)
     {
         _borrowRecordRepository = borrowRecordRepository;
@@ -74,7 +75,7 @@ public class NotificationService
         var body = $"Hi {user.Username}, \"{bookTitle}\" is due back tomorrow ({record.ReturnDate:yyyy-MM-dd}). " +
                    "Please return it on time to avoid a fine.";
 
-        _emailService.SeedEmail(user.Email, subject, body);
+        _emailService.SendEmail(user.Email, subject, body);
     }
 
     private void NotifyOverdue(BorrowRecordEntity record)
@@ -88,6 +89,6 @@ public class NotificationService
                    $"and is now {daysLate} day(s) late. Current outstanding fines: {user.Fines:0.00}. " +
                    "Please return the book and settle any fines as soon as possible.";
 
-        _emailService.SeedEmail(user.Email, subject, body);
+        _emailService.SendEmail(user.Email, subject, body);
     }
 }

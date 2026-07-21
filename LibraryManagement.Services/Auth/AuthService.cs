@@ -4,17 +4,18 @@ using LibraryManagement.Core.Exceptions;
 using LibraryManagement.DataAccess.Interfaces;
 using System.Net.Mail;
 using LibraryManagement.Services.Logging;
+using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.Services.Auth;
 
 public class AuthService
 {
     private readonly IUserRepository _userRepository;
-    private readonly EmailService _emailService;
+    private readonly LibraryManagement.Services.Interfaces.IEmailService _emailService;
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, UserEntity> _pending =
         new(System.StringComparer.OrdinalIgnoreCase);
 
-    public AuthService(IUserRepository userRepository, EmailService emailService)
+    public AuthService(IUserRepository userRepository, IEmailService emailService)
     {
         _userRepository = userRepository;
         _emailService = emailService;
@@ -51,7 +52,7 @@ public class AuthService
 
         user.CreatedAt = DateTime.UtcNow;
 
-        var emailSent = _emailService.SeedEmail(email, "Verification code", verificationCode);
+        var emailSent = _emailService.SendEmail(email, "Verification code", verificationCode);
         if (!emailSent)
         {
             throw new ValidationException("Failed to send verification email. Registration aborted.");
@@ -135,7 +136,7 @@ public class AuthService
 
     public void SendVerificationCode(string email, string verificationCode)
     {
-        _emailService.SeedEmail(email, "Verification code", verificationCode);
+        _emailService.SendEmail(email, "Verification code", verificationCode);
         EventLogger.Log($"Verification code sent: Email={email}");
     }
 

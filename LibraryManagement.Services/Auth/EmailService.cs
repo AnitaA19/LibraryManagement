@@ -2,9 +2,11 @@
 using System.Net.Mail;
 using System.Text;
 
+using LibraryManagement.Services.Interfaces;
+
 namespace LibraryManagement.Services.Auth
 {
-    public class EmailService
+    public class EmailService : IEmailService
     {
         private readonly global::LibraryManagement.Core.Configuration.EmailSettings _settings;
         private static readonly string LogPath =
@@ -15,7 +17,7 @@ namespace LibraryManagement.Services.Auth
             _settings = settings;
         }
 
-        public bool SeedEmail(string to, string subject, string body)
+        public bool SendEmail(string to, string subject, string body)
         {
             var htmlBody = BuildHtmlEmail(subject, body);
 
