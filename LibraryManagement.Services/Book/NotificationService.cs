@@ -1,6 +1,6 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Enums;
-using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Core.Interfaces;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.Interfaces;
 using LibraryManagement.Services.BookServices;

@@ -16,10 +16,12 @@ var configuration = new ConfigurationBuilder()
 var emailSettings = new EmailSettings();
 configuration.GetSection("Email").Bind(emailSettings);
 
+// Create concrete repositories (implementations of Core interfaces)
 var bookRepository = new BookRepository();
 var userRepository = new UserRepository();
 var borrowRecordRepository = new BorrowRecordRepository();
 
+// Services
 var emailService = new EmailService(emailSettings);
 var authService = new AuthService(userRepository, emailService);
 var bookService = new BookService(bookRepository, borrowRecordRepository, userRepository);
@@ -66,7 +68,7 @@ new Menu(authService, bookService, notificationService, bookRepository, session)
 
 Console.WriteLine("Goodbye!");
 
-static void EnsureAdminSeeded(AuthService authService, LibraryManagement.DataAccess.Interfaces.IUserRepository userRepository)
+static void EnsureAdminSeeded(AuthService authService, LibraryManagement.Core.Interfaces.IUserRepository userRepository)
 {
     var adminExists = userRepository.GetEntities().Any(u => u.UserRole == UserRole.Admin);
     if (adminExists)

@@ -1,7 +1,7 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Enums;
 using LibraryManagement.Core.Exceptions;
-using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Core.Interfaces;
 using System.Net.Mail;
 using LibraryManagement.Services.Logging;
 using LibraryManagement.Services.Interfaces;
@@ -211,6 +211,25 @@ public class AuthService
         _userRepository.UpdateEntity(user);
         SendVerificationCode(newEmail, verificationCode);
         EventLogger.Log($"User email updated: UserId={userId}, NewEmail={newEmail}");
+    }
+
+    public void ChangePassword(int userId, string currentPassword, string newPassword)
+    {
+        var user = _userRepository.GetEntity(userId);
+
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
+        {
+            throw new InvalidCredentialsException("Current password is incorrect.");
+        }
+
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        {
+            throw new ValidationException("New password must be at least 6 characters long.");
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        _userRepository.UpdateEntity(user);
+        EventLogger.Log($"User changed password: UserId={userId}");
     }
 
     private void ValidateEmailFormat(string email)

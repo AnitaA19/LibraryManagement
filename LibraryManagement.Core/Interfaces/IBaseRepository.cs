@@ -1,6 +1,6 @@
-﻿using LibraryManagement.Core.Entities;
+using LibraryManagement.Core.Entities;
 
-namespace LibraryManagement.DataAccess.Interfaces;
+namespace LibraryManagement.Core.Interfaces;
 
 public interface IBaseRepository<TEntity> where TEntity : BaseEntity
 {

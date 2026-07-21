@@ -1,5 +1,5 @@
 ﻿using LibraryManagement.Core.Entities;
-using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Core.Interfaces;
 
 namespace LibraryManagement.DataAccess.Repositories;
 

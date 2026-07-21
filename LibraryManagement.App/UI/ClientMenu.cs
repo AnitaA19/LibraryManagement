@@ -1,5 +1,5 @@
 ﻿using LibraryManagement.Core.Entities;
-using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Core.Interfaces;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
 
@@ -22,7 +22,7 @@ namespace LibraryManagement.App.UI
             _authService = authService;
         }
 
-        protected override int MaxOption => 8;
+        protected override int MaxOption => 9;
 
         protected override void DisplayMenu(UserEntity currentUser)
         {
@@ -35,6 +35,7 @@ namespace LibraryManagement.App.UI
             Console.WriteLine("6) View my fines");
             Console.WriteLine("7) Pay fines");
             Console.WriteLine("8) Update email");
+            Console.WriteLine("9) Change password");
             Console.WriteLine("0) Logout");
         }
 
@@ -125,6 +126,14 @@ namespace LibraryManagement.App.UI
             var newEmail = ConsoleIO.ReadNonEmptyString("New email: ");
             _authService.UpdateEmail(currentUser.Id, newEmail);
             ConsoleIO.WriteSuccess("Email updated. A verification code has been sent to your new email.");
+        }
+
+        private void ChangePassword(UserEntity currentUser)
+        {
+            var current = ConsoleIO.ReadNonEmptyString("Current password: ");
+            var nw = ConsoleIO.ReadNonEmptyString("New password: ");
+            _authService.ChangePassword(currentUser.Id, current, nw);
+            ConsoleIO.WriteSuccess("Password changed successfully.");
         }
 
         private void PrintBooks(IEnumerable<BookEntity> books)

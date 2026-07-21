@@ -1,6 +1,6 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Exceptions;
-using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Core.Interfaces;
 using System.Text.Json;
 
 namespace LibraryManagement.DataAccess.Repositories;

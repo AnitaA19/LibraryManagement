@@ -1,13 +1,1 @@
-[
-  {
-    "Username": "Anita",
-    "PasswordHash": "$2a$11$q0Dpn6AjUsm/ceLTg9XuQuYXiz8iYDyPVg0222zaCRr2UD5NJluRa",
-    "Email": "anita@library.com",
-    "UserRole": 1,
-    "IsVerified": true,
-    "VerificationCode": null,
-    "CreatedAt": "0001-01-01T00:00:00",
-    "Fines": 0,
-    "Id": 1
-  }
-]
+[{"Username":"Anita","PasswordHash":"$2a$11$q0Dpn6AjUsm/ceLTg9XuQuYXiz8iYDyPVg0222zaCRr2UD5NJluRa","Email":"anita@library.com","UserRole":1,"IsVerified":true,"VerificationCode":null,"CreatedAt":"0001-01-01T00:00:00","VerificationSentAt":null,"Fines":0,"Id":1},{"Username":"Anita","PasswordHash":"$2a$11$zjzn8wqYp5UAZq64730T8e/1pmd9r2K6WJkem7eU7px/thKt9J9fO","Email":"anita.balasanyan757@ens.tsu.edu.ge","UserRole":0,"IsVerified":true,"VerificationCode":"864041","CreatedAt":"2026-07-21T18:05:37.2047474Z","VerificationSentAt":"2026-07-21T18:05:37.2047679Z","Fines":0,"Id":2}]

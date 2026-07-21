@@ -1,5 +1,5 @@
 ﻿using LibraryManagement.Core.Enums;
-using LibraryManagement.DataAccess.Interfaces;
+using LibraryManagement.Core.Interfaces;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
 using LibraryManagement.Services.Notifications;
