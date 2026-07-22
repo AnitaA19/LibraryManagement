@@ -168,7 +168,18 @@ namespace LibraryManagement.App.UI
             foreach (var record in records)
             {
                 var title = _bookRepository.FindBookByIsbn(record.Isbn)?.Title ?? "Unknown book";
-                Console.WriteLine($"[{record.Id}] User {record.UserId} - \"{title}\" - {record.BorrowStatus} - Due: {record.ReturnDate:yyyy-MM-dd}");
+                string userEmail;
+                try
+                {
+                    var user = _authService.GetUserById(record.UserId);
+                    userEmail = user.Email;
+                }
+                catch
+                {
+                    userEmail = $"User {record.UserId}";
+                }
+
+                Console.WriteLine($"[{record.Id}] {userEmail} - \"{title}\" - {record.BorrowStatus} - Due: {record.ReturnDate:yyyy-MM-dd}");
             }
         }
     }

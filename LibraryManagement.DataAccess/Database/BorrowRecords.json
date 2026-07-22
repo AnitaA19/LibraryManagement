@@ -1,18 +1,1 @@
-[
-  {
-    "UserId": 2,
-    "Isbn": "123-0024",
-    "ReturnDate": "2026-07-21T00:00:00",
-    "BorrowStatus": 2,
-    "FinedDays": 0,
-    "Id": 1
-  },
-  {
-    "UserId": 2,
-    "Isbn": "123-0037",
-    "ReturnDate": "2026-07-25T00:00:00",
-    "BorrowStatus": 1,
-    "FinedDays": 0,
-    "Id": 2
-  }
-]
+[{"UserId":2,"Isbn":"123-0024","ReturnDate":"2026-07-21T00:00:00","BorrowStatus":2,"FinedDays":0,"Id":1},{"UserId":2,"Isbn":"123-0037","ReturnDate":"2026-07-25T00:00:00","BorrowStatus":1,"FinedDays":0,"Id":2},{"UserId":3,"Isbn":"123-0012","ReturnDate":"2026-07-25T00:00:00","BorrowStatus":1,"FinedDays":0,"Id":3}]

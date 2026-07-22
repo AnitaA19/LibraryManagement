@@ -109,6 +109,11 @@ public class AuthService
         return targetUser;
     }
 
+    public UserEntity GetUserById(int id)
+    {
+        return _userRepository.GetUserById(id);
+    }
+
     public UserEntity Login(string usernameOrEmail, string password)
     {
         // Login is only allowed via email

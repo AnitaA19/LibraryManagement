@@ -49,4 +49,9 @@ public class UserRepository : BaseRepository<UserEntity>, IUserRepository
 
         return toRemove.Count;
     }
+
+    public UserEntity GetUserById(int id)
+    {
+        return GetEntity(id);
+    }
 }

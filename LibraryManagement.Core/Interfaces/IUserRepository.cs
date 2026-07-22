@@ -6,4 +6,5 @@ public interface IUserRepository : IBaseRepository<UserEntity>
 {
     int RemoveStaleUnverifiedUsers(TimeSpan maxAge);
     int RemoveUnverifiedUsers(bool excludeAdmins);
+    UserEntity GetUserById(int id);
 }
