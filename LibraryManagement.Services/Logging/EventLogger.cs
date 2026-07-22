@@ -20,8 +20,17 @@ public static class EventLogger
             var entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
             File.AppendAllText(LogPath, entry);
         }
-        catch
+        catch (Exception ex)
         {
+            // If event logging fails, write to error logger as a fallback
+            try
+            {
+                ErrorLogger.LogError("Failed to write event log.", ex);
+            }
+            catch
+            {
+                // swallow
+            }
         }
     }
 }
