@@ -5,6 +5,8 @@ using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
 using LibraryManagement.Core.Configuration;
 using LibraryManagement.Services.Notifications;
+using LibraryManagement.Services.User;
+using LibraryManagement.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 
 var configuration = new ConfigurationBuilder()
@@ -16,22 +18,21 @@ var configuration = new ConfigurationBuilder()
 var emailSettings = new EmailSettings();
 configuration.GetSection("Email").Bind(emailSettings);
 
-// Create concrete repositories (implementations of Core interfaces)
 var bookRepository = new BookRepository();
 var userRepository = new UserRepository();
 var borrowRecordRepository = new BorrowRecordRepository();
 
-// Services
 var emailService = new EmailService(emailSettings);
 var authService = new AuthService(userRepository, emailService);
-var bookService = new BookService(bookRepository, borrowRecordRepository, userRepository);
-var notificationService = new NotificationService(borrowRecordRepository, userRepository, bookRepository, emailService, bookService);
+IUserService userService = new UserService(userRepository, borrowRecordRepository);
+var bookService = new BookService(bookRepository, borrowRecordRepository, userRepository, userService);
+var notificationService = new NotificationService(borrowRecordRepository, userRepository, bookRepository, emailService, userService);
 
 EnsureAdminSeeded(authService, userRepository);
 
 try
 {
-    var removed = userRepository.RemoveStaleUnverifiedUsers(TimeSpan.FromDays(1));
+    var removed = userService.RemoveStaleUnverifiedUsers(TimeSpan.FromDays(1));
     if (removed > 0)
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -48,7 +49,7 @@ catch (Exception ex)
 
 try
 {
-    var removedAll = userRepository.RemoveUnverifiedUsers(excludeAdmins: true);
+    var removedAll = userService.RemoveUnverifiedUsers(excludeAdmins: true);
     if (removedAll > 0)
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -64,7 +65,7 @@ catch (Exception ex)
 }
 
 var session = new SessionContext();
-new Menu(authService, bookService, notificationService, bookRepository, session).Run();
+new Menu(authService, bookService, notificationService, bookRepository, session, userService).Run();
 
 Console.WriteLine("Goodbye!");
 

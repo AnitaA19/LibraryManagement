@@ -1,9 +1,14 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Enums;
 using LibraryManagement.Core.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.Interfaces;
 using LibraryManagement.Services.BookServices;
+using LibraryManagement.Services.User;
+using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.Services.Notifications;
 
@@ -13,20 +18,20 @@ public class NotificationService
     private readonly IUserRepository _userRepository;
     private readonly IBookRepository _bookRepository;
     private readonly LibraryManagement.Services.Interfaces.IEmailService _emailService;
-    private readonly BookService _bookService;
+    private readonly IUserService _userService;
 
     public NotificationService(
         IBorrowRecordRepository borrowRecordRepository,
         IUserRepository userRepository,
         IBookRepository bookRepository,
         IEmailService emailService,
-        BookService bookService)
+        IUserService userService)
     {
         _borrowRecordRepository = borrowRecordRepository;
         _userRepository = userRepository;
         _bookRepository = bookRepository;
         _emailService = emailService;
-        _bookService = bookService;
+        _userService = userService;
     }
 
     public IEnumerable<BorrowRecordEntity> GetRecordsDueTomorrow()
@@ -47,7 +52,7 @@ public class NotificationService
 
     public (int dueSoonCount, int overdueCount) SendDueDateNotifications()
     {
-        _bookService.ApplyOverdueFines();
+        _userService.ApplyOverdueFines();
 
         int dueSoonCount = 0;
         foreach (var record in GetRecordsDueTomorrow())

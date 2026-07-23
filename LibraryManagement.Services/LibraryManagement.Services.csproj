@@ -9,9 +9,6 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
   </ItemGroup>
-
-  <ItemGroup>
-  </ItemGroup>
   <ItemGroup>
     <!-- Services depend on Core for shared entities and interfaces -->
     <ProjectReference Include="..\LibraryManagement.Core\LibraryManagement.Core.csproj" />

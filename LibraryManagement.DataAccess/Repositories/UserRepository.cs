@@ -15,41 +15,6 @@ public class UserRepository : BaseRepository<UserEntity>, IUserRepository
     {
     }
 
-    public int RemoveStaleUnverifiedUsers(TimeSpan maxAge)
-    {
-        var entities = ReadEntitiesFromFile();
-        var cutoff = DateTime.UtcNow - maxAge;
-        var toRemove = entities.Where(u => !u.IsVerified && (u.CreatedAt == default || u.CreatedAt < cutoff)).ToList();
-        foreach (var r in toRemove)
-        {
-            entities.Remove(r);
-        }
-
-        if (toRemove.Count > 0)
-        {
-            WriteEntitiesToFile(entities);
-        }
-
-        return toRemove.Count;
-    }
-
-    public int RemoveUnverifiedUsers(bool excludeAdmins)
-    {
-        var entities = ReadEntitiesFromFile();
-        var toRemove = entities.Where(u => !u.IsVerified && (!excludeAdmins || u.UserRole != LibraryManagement.Core.Enums.UserRole.Admin)).ToList();
-        foreach (var r in toRemove)
-        {
-            entities.Remove(r);
-        }
-
-        if (toRemove.Count > 0)
-        {
-            WriteEntitiesToFile(entities);
-        }
-
-        return toRemove.Count;
-    }
-
     public UserEntity GetUserById(int id)
     {
         return GetEntity(id);

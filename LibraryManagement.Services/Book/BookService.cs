@@ -2,24 +2,27 @@
 using LibraryManagement.Core.Enums;
 using LibraryManagement.Core.Exceptions;
 using LibraryManagement.Core.Interfaces;
+using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.Services.BookServices;
 
-public class BookService
+public class BookService : IBookService
 {
     private readonly IBookRepository _bookRepository;
     private readonly IBorrowRecordRepository _borrowRecordRepository;
     private readonly IUserRepository _userRepository;
-    private readonly int FinePerDay = 5;
+    private readonly IUserService _userService;
 
     public BookService(
         IBookRepository bookRepository,
         IBorrowRecordRepository borrowRecordRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IUserService userService)
     {
         _bookRepository = bookRepository;
         _borrowRecordRepository = borrowRecordRepository;
         _userRepository = userRepository;
+        _userService = userService;
     }
 
     private bool IsAdmin(int userId)
@@ -30,66 +33,7 @@ public class BookService
 
     private decimal ValidateFines(int userId)
     {
-        ApplyOverdueFinesForUser(userId);
-
-        var user = _userRepository.GetEntity(userId);
-
-        if (user.Fines > 0)
-        {
-            throw new OutstandingFineException(user.Fines);
-        }
-        return user.Fines;
-    }
-
-    public void ApplyOverdueFines()
-    {
-        var overdueRecords = _borrowRecordRepository.GetEntities()
-            .Where(br => br.BorrowStatus == BorrowStatus.Approved && br.ReturnDate < DateTime.Now);
-
-        foreach (var record in overdueRecords)
-        {
-            ApplyOverdueFineToRecord(record);
-        }
-    }
-
-    private void ApplyOverdueFinesForUser(int userId)
-    {
-        var overdueRecords = _borrowRecordRepository.GetEntities()
-            .Where(br => br.UserId == userId &&
-                         br.BorrowStatus == BorrowStatus.Approved &&
-                         br.ReturnDate < DateTime.Now);
-
-        foreach (var record in overdueRecords)
-        {
-            ApplyOverdueFineToRecord(record);
-        }
-    }
-
-    private void ApplyOverdueFineToRecord(BorrowRecordEntity record)
-    {
-        var overdueDays = (DateTime.Now - record.ReturnDate).Days;
-        var newOverdueDays = overdueDays - record.FinedDays;
-
-        if (newOverdueDays <= 0)
-        {
-            return;
-        }
-
-        var user = _userRepository.GetEntity(record.UserId);
-        user.AddFine(newOverdueDays * FinePerDay);
-        record.FinedDays = overdueDays;
-
-        _userRepository.UpdateEntity(user);
-        _borrowRecordRepository.UpdateEntity(record);
-    }
-
-    public decimal PayFines(int userId, decimal amount)
-    {
-        var user = _userRepository.GetEntity(userId);
-        user.PayFine(amount);
-        _userRepository.UpdateEntity(user);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Fines paid: UserId={userId}, Amount={amount:0.00}, Remaining={user.Fines:0.00}");
-        return user.Fines;
+        return _userService.ValidateFines(userId);
     }
 
     public IEnumerable<BookEntity> ViewBooks(int pageNumber = 1, int pageSize = 10)
@@ -105,7 +49,6 @@ public class BookService
             .Take(pageSize);
     }
 
-    // wrapper to log when a user views books
     public IEnumerable<BookEntity> ViewBooksForUser(int userId, int pageNumber = 1, int pageSize = 10)
     {
         var result = ViewBooks(pageNumber, pageSize);
@@ -128,7 +71,6 @@ public class BookService
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize);
     }
-    // wrapper to log when a user searches books
     public IEnumerable<BookEntity> SearchBooksForUser(int userId, string searchTerm, int pageNumber = 1, int pageSize = 10)
     {
         var result = SearchBooks(searchTerm, pageNumber, pageSize);

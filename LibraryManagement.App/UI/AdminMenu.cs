@@ -1,20 +1,20 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Interfaces;
 using LibraryManagement.Services.Auth;
-using LibraryManagement.Services.BookServices;
 using LibraryManagement.Services.Notifications;
+using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.App.UI
 {
     internal class AdminMenu : BaseMenu
     {
-        private readonly BookService _bookService;
+        private readonly IBookService _bookService;
         private readonly AuthService _authService;
         private readonly NotificationService _notificationService;
         private readonly IBookRepository _bookRepository;
 
         public AdminMenu(
-            BookService bookService,
+            IBookService bookService,
             AuthService authService,
             NotificationService notificationService,
             IBookRepository bookRepository,

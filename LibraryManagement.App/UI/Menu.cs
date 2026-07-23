@@ -3,29 +3,33 @@ using LibraryManagement.Core.Interfaces;
 using LibraryManagement.Services.Auth;
 using LibraryManagement.Services.BookServices;
 using LibraryManagement.Services.Notifications;
+using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.App.UI
 {
     internal class Menu
     {
         private readonly AuthService _authService;
-        private readonly BookService _bookService;
+        private readonly IBookService _bookService;
         private readonly NotificationService _notificationService;
         private readonly IBookRepository _bookRepository;
         private readonly SessionContext _session;
+        private readonly IUserService _userService;
 
         public Menu(
             AuthService authService,
-            BookService bookService,
+            IBookService bookService,
             NotificationService notificationService,
             IBookRepository bookRepository,
-            SessionContext session)
+            SessionContext session,
+            IUserService userService)
         {
             _authService = authService;
             _bookService = bookService;
             _notificationService = notificationService;
             _bookRepository = bookRepository;
             _session = session;
+            _userService = userService;
         }
 
         public void Run()
@@ -68,7 +72,7 @@ namespace LibraryManagement.App.UI
                 {
                     BaseMenu menu = _session.CurrentUser!.UserRole == UserRole.Admin
                         ? new AdminMenu(_bookService, _authService, _notificationService, _bookRepository, _session)
-                        : new ClientMenu(_bookService, _bookRepository, _session, _authService);
+                        : new ClientMenu(_bookService, _bookRepository, _session, _authService, _userService);
 
                     menu.Run();
                 }

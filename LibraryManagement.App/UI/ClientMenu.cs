@@ -1,25 +1,28 @@
 ﻿using LibraryManagement.Core.Entities;
 using LibraryManagement.Core.Interfaces;
 using LibraryManagement.Services.Auth;
-using LibraryManagement.Services.BookServices;
+using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.App.UI
 {
     internal class ClientMenu : BaseMenu
     {
-        private readonly BookService _bookService;
+        private readonly IBookService _bookService;
         private readonly IBookRepository _bookRepository;
         private readonly AuthService _authService;
+        private readonly IUserService _userService;
 
         public ClientMenu(
-            BookService bookService,
+            IBookService bookService,
             IBookRepository bookRepository,
             SessionContext session,
-            AuthService authService) : base(session)
+            AuthService authService,
+            IUserService userService) : base(session)
         {
             _bookService = bookService;
             _bookRepository = bookRepository;
             _authService = authService;
+            _userService = userService;
         }
 
         protected override int MaxOption => 9;
@@ -117,7 +120,7 @@ namespace LibraryManagement.App.UI
         private void PayFines(UserEntity currentUser)
         {
             var amount = ConsoleIO.ReadDecimal("Amount to pay: ");
-            var remaining = _bookService.PayFines(currentUser.Id, amount);
+            var remaining = _userService.PayFines(currentUser.Id, amount);
             ConsoleIO.WriteSuccess($"Payment accepted. Remaining fines: {remaining:0.00}");
         }
 
