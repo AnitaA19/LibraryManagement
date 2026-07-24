@@ -5,8 +5,32 @@ namespace LibraryManagement.Core.Logging;
 
 public static class ErrorLogger
 {
-    private static readonly string LogDirectory = Path.Combine(AppContext.BaseDirectory, "Logs");
+    private static readonly string DefaultLogDirectory = Path.Combine(AppContext.BaseDirectory, "Logs");
+    private static readonly string LogDirectory = ResolveCoreLogsDirectory() ?? DefaultLogDirectory;
     private static readonly string LogPath = Path.Combine(LogDirectory, "errors.log");
+
+    private static string? ResolveCoreLogsDirectory()
+    {
+        try
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            for (int i = 0; i < 8 && dir != null; i++)
+            {
+                var candidate = Path.Combine(dir.FullName, "LibraryManagement.Core", "Logs");
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+                dir = dir.Parent;
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+
+        return null;
+    }
 
     public static void LogError(string message, Exception? ex = null)
     {

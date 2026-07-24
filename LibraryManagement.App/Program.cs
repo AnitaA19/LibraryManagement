@@ -8,6 +8,8 @@ using LibraryManagement.Services.Notifications;
 using LibraryManagement.Services.User;
 using LibraryManagement.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
+using LibraryManagement.Core.Logging;
+using System.IO;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -17,6 +19,16 @@ var configuration = new ConfigurationBuilder()
 
 var emailSettings = new EmailSettings();
 configuration.GetSection("Email").Bind(emailSettings);
+
+try
+{
+    EventLogger.Log("Startup: ensuring log files exist.");
+    ErrorLogger.LogError("Startup: ensuring error log exists.");
+}
+catch
+{
+    // Best-effort; swallow to avoid breaking startup
+}
 
 var bookRepository = new BookRepository();
 var userRepository = new UserRepository();

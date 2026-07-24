@@ -5,7 +5,31 @@ namespace LibraryManagement.Core.Logging;
 
 public static class EventLogger
 {
-    private static readonly string LogPath = Path.Combine(AppContext.BaseDirectory, "Database", "Events.log");
+    private static readonly string DefaultLogPath = Path.Combine(AppContext.BaseDirectory, "Database", "Events.log");
+    private static readonly string LogPath = ResolveCoreLogPath("event.log") ?? DefaultLogPath;
+
+    private static string? ResolveCoreLogPath(string fileName)
+    {
+        try
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            for (int i = 0; i < 8 && dir != null; i++)
+            {
+                var candidate = Path.Combine(dir.FullName, "LibraryManagement.Core", "Logs");
+                if (Directory.Exists(candidate))
+                {
+                    return Path.Combine(candidate, fileName);
+                }
+                dir = dir.Parent;
+            }
+        }
+        catch
+        {
+            // ignore and fallback
+        }
+
+        return null;
+    }
 
     public static void Log(string message)
     {
