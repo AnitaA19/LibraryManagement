@@ -34,6 +34,11 @@ public class AuthService
             throw new DuplicateEntityException("A user with this email already exists.");
         }
 
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        {
+            throw new ValidationException("Password must be at least 6 characters long.");
+        }
+
         string verificationCode = new Random().Next(100000, 999999).ToString();
 
         if (string.IsNullOrWhiteSpace(verificationCode))
