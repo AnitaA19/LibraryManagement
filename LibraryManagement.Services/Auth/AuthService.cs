@@ -3,7 +3,7 @@ using LibraryManagement.Core.Enums;
 using LibraryManagement.Core.Exceptions;
 using LibraryManagement.Core.Interfaces;
 using System.Net.Mail;
-using LibraryManagement.Services.Logging;
+using LibraryManagement.Core.Logging;
 using LibraryManagement.Services.Interfaces;
 
 namespace LibraryManagement.Services.Auth;

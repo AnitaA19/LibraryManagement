@@ -52,7 +52,7 @@ public class BookService : IBookService
     public IEnumerable<BookEntity> ViewBooksForUser(int userId, int pageNumber = 1, int pageSize = 10)
     {
         var result = ViewBooks(pageNumber, pageSize);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Books viewed: UserId={userId}, Page={pageNumber}, PageSize={pageSize}, Returned={result.Count()} items");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Books viewed: UserId={userId}, Page={pageNumber}, PageSize={pageSize}, Returned={result.Count()} items");
         return result;
     }
 
@@ -74,7 +74,7 @@ public class BookService : IBookService
     public IEnumerable<BookEntity> SearchBooksForUser(int userId, string searchTerm, int pageNumber = 1, int pageSize = 10)
     {
         var result = SearchBooks(searchTerm, pageNumber, pageSize);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Books searched: UserId={userId}, Term='{searchTerm}', Page={pageNumber}, PageSize={pageSize}, Returned={result.Count()} items");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Books searched: UserId={userId}, Term='{searchTerm}', Page={pageNumber}, PageSize={pageSize}, Returned={result.Count()} items");
         return result;
     }
 
@@ -103,7 +103,7 @@ public class BookService : IBookService
 
         _borrowRecordRepository.AddEntity(borrowRecord);
 
-        LibraryManagement.Services.Logging.EventLogger.Log($"Borrow request created: UserId={userId}, Isbn={borrowRecord.Isbn}, ReturnDate={borrowRecord.ReturnDate:yyyy-MM-dd}, RequestId={borrowRecord.Id}");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Borrow request created: UserId={userId}, Isbn={borrowRecord.Isbn}, ReturnDate={borrowRecord.ReturnDate:yyyy-MM-dd}, RequestId={borrowRecord.Id}");
 
         return borrowRecord;
     }
@@ -125,7 +125,7 @@ public class BookService : IBookService
         book.DecreaseQuantity(1);
         _borrowRecordRepository.UpdateEntity(borrowRecord);
         _bookRepository.UpdateEntity(book);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Borrow approved: RequestId={borrowRecord.Id}, UserId={borrowRecord.UserId}, Isbn={borrowRecord.Isbn}");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Borrow approved: RequestId={borrowRecord.Id}, UserId={borrowRecord.UserId}, Isbn={borrowRecord.Isbn}");
         return borrowRecord;
     }
 
@@ -143,7 +143,7 @@ public class BookService : IBookService
         }
         borrowRecord.BorrowStatus = BorrowStatus.Rejected;
         _borrowRecordRepository.UpdateEntity(borrowRecord);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Borrow rejected: RequestId={borrowRecord.Id}, UserId={borrowRecord.UserId}, Isbn={borrowRecord.Isbn}");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Borrow rejected: RequestId={borrowRecord.Id}, UserId={borrowRecord.UserId}, Isbn={borrowRecord.Isbn}");
         return borrowRecord;
     }
 
@@ -175,7 +175,7 @@ public class BookService : IBookService
         book.IncreaseQuantity(1);
         _borrowRecordRepository.UpdateEntity(borrowRecord);
         _bookRepository.UpdateEntity(book);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Book returned: RequestId={borrowRecord.Id}, UserId={borrowRecord.UserId}, Isbn={borrowRecord.Isbn}");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Book returned: RequestId={borrowRecord.Id}, UserId={borrowRecord.UserId}, Isbn={borrowRecord.Isbn}");
         return book;
     }
 

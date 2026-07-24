@@ -134,7 +134,7 @@ public class UserService : IUserService
         var user = _userRepository.GetEntity(userId);
         user.PayFine(amount);
         _userRepository.UpdateEntity(user);
-        LibraryManagement.Services.Logging.EventLogger.Log($"Fines paid: UserId={userId}, Amount={amount:0.00}, Remaining={user.Fines:0.00}");
+        LibraryManagement.Core.Logging.EventLogger.Log($"Fines paid: UserId={userId}, Amount={amount:0.00}, Remaining={user.Fines:0.00}");
         return user.Fines;
     }
 }
